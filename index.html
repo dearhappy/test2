@@ -1,383 +1,317 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCAFFOLDING REPORT SYSTEM</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interactive Quiz</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --secondary: #a29bfe;
+            --success: #00b894;
+            --error: #ff7675;
+            --bg: #f0f2f5;
+        }
 
-  <style>
-    body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
-    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
-    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-    #report-container {
-      width: 297mm;
-      background: white;
-      padding: 10mm;
-      display: none; 
-      position: absolute; 
-      top: 0; left: 0; z-index: -1;
-      color: #000;
-    }
-    .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-    .report-table th, .report-table td { 
-      border: 0.5pt solid #000; 
-      padding: 4px 2px; 
-      text-align: center; 
-      font-size: 9px; 
-      word-wrap: break-word; 
-    }
-    .report-header { background-color: #f0f0f0; font-weight: bold; }
-    .summary-section { display: flex; justify-content: space-between; margin-bottom: 10px; border: 1px solid #000; padding: 10px; }
-    .stat-box { font-size: 11px; line-height: 1.4; }
-  </style>
-</head>
-<body class="min-h-screen flex items-center justify-center p-4">
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
 
-  <div id="app" class="w-full max-w-md">
-    <div id="loading" class="text-center py-10">
-      <div class="loader rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div>
-      <h2 class="text-xl font-semibold text-gray-700">Loading System...</h2>
-    </div>
+        #app-container {
+            width: 95%;
+            max-width: 500px;
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            position: relative;
+        }
 
-    <div id="login-screen" class="card p-6 hidden">
-      <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Supervisor Login</h2>
-      <div class="space-y-4">
-        <select id="login-username" class="w-full rounded-md border p-3 bg-gray-50"><option value="">Select Name</option></select>
-        <input type="password" id="login-passcode" class="w-full rounded-md border p-3 bg-gray-50" placeholder="Passcode">
-        <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">LOGIN</button>
-      </div>
-    </div>
+        .hidden { display: none !important; }
 
-    <div id="form-screen" class="hidden">
-      <div class="card p-4 mb-4">
-        <div class="flex justify-between items-center mb-4">
-          <span class="text-xs font-bold text-gray-500" id="display-supervisor"></span>
-          <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded" id="entry-count">Entries: 0</span>
-        </div>
+        /* AI Host Styling */
+        #ai-host {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 15px;
+            position: relative;
+        }
+
+        .character-svg { width: 100%; height: 100%; }
+        .eye { fill: #333; transition: 0.2s; }
+        .wink { height: 2px !important; } /* Winking effect */
         
-        <form id="job-form" class="space-y-3">
-          <div class="grid grid-cols-2 gap-2">
-            <div><label class="text-[10px] font-bold">DATE</label><input type="date" id="f-date" class="w-full border rounded p-2 text-sm"></div>
-            <div><label class="text-[10px] font-bold">SHEET NO</label><input type="text" id="f-sheet" class="w-full border rounded p-2 text-sm"></div>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-2">
-            <select id="f-area" class="border rounded p-2 text-sm"><option value="">Select Area</option></select>
-            <select id="f-dept" class="border rounded p-2 text-sm"><option value="">Select Dept</option></select>
-          </div>
+        .bubble {
+            background: #fff;
+            border: 2px solid var(--primary);
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            position: relative;
+        }
 
-          <select id="f-jobtype" class="w-full border rounded p-2 text-sm">
-            <option value="">Job Type</option>
-            <option value="Erection">Erection</option>
-            <option value="Dismantling">Dismantling</option>
-            <option value="Materials Shifting">Materials Shifting</option>
-            <option value="Unloading">Unloading</option>
-          </select>
+        /* UI Elements */
+        input {
+            width: 80%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+        }
 
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="f-tag" class="border rounded p-2 text-sm" placeholder="Tag No.">
-            <input type="text" id="f-location" class="border rounded p-2 text-sm" placeholder="Work Location">
-          </div>
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
 
-          <div class="grid grid-cols-2 gap-2">
-            <select id="f-scaffold" class="border rounded p-2 text-sm"><option value="">Scaffold Type</option></select>
-            <select id="f-elevation" class="border rounded p-2 text-sm"><option value="">Elevation</option></select>
-          </div>
+        button:active { transform: scale(0.95); }
 
-          <div class="bg-gray-100 p-2 rounded grid grid-cols-4 gap-1">
-            <input type="number" id="f-l" placeholder="L" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-            <input type="number" id="f-w" placeholder="W" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-            <input type="number" id="f-h" placeholder="H" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-            <input type="number" id="f-nos" placeholder="Nos" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-          </div>
-          <div class="text-right text-xs font-bold text-blue-700">Volume: <span id="display-vol">0.00</span> m³</div>
+        .option-btn {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            background: #f8f9fa;
+            color: #333;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
 
-          <div>
-            <label class="text-[10px] font-bold">SCAFFOLD PHOTO</label>
-            <input type="file" id="f-photo" accept="image/*" class="w-full text-xs border p-1 rounded bg-white">
-          </div>
+        .correct { background: var(--success) !important; color: white; }
+        .wrong { background: var(--error) !important; color: white; }
 
-          <div class="flex space-x-2 pt-2">
-             <button type="button" onclick="addEntry()" class="flex-1 bg-green-600 text-white py-3 rounded font-bold">ADD ENTRY</button>
-             <button type="button" onclick="goToFinalize()" class="flex-1 bg-blue-700 text-white py-3 rounded font-bold">FINISH</button>
-          </div>
-        </form>
-      </div>
-      <div id="entry-list" class="space-y-2 pb-10"></div>
+        /* Report Preview (Hidden) */
+        #report-template {
+            width: 800px;
+            padding: 40px;
+            background: white;
+            position: absolute;
+            left: -9999px;
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    <div id="entry-screen">
+        <h2>Welcome to the Quiz!</h2>
+        <p>Enter your details to start</p>
+        <input type="text" id="userName" placeholder="Your Full Name" required>
+        <input type="tel" id="userMobile" placeholder="Mobile Number" required>
+        <br><br>
+        <button onclick="startQuiz()">Start Quiz</button>
     </div>
 
-    <div id="finalize-screen" class="hidden card p-6">
-       <h3 class="font-bold mb-4 border-b pb-2">Final Confirmation</h3>
-       <input type="text" id="final-eng-name" class="w-full border p-3 rounded mb-3" placeholder="AMNS Engineer Name">
-       <input type="number" id="final-manpower" class="w-full border p-3 rounded mb-4" placeholder="Total Manpower">
-       <button onclick="submitAll()" id="btn-submit-all" class="w-full bg-indigo-600 text-white p-4 rounded font-bold shadow-lg">SUBMIT & DOWNLOAD REPORT</button>
-    </div>
-
-    <div id="success-screen" class="hidden card p-6 text-center">
-       <i class="fas fa-check-circle text-green-500 text-6xl mb-4"></i>
-       <h2 class="text-xl font-bold mb-4">Report Generated!</h2>
-       <button onclick="copyWhatsAppText()" class="w-full bg-blue-500 text-white p-3 rounded font-bold mb-2">COPY WHATSAPP TEXT</button>
-       <button onclick="shareWhatsApp()" class="w-full bg-green-500 text-white p-3 rounded font-bold mb-4">SHARE ON WHATSAPP</button>
-       <button onclick="location.reload()" class="text-gray-500 text-sm underline">Start New Session</button>
-    </div>
-  </div>
-
-  <div id="report-container">
-    <div style="text-align: center; margin-bottom: 10px;">
-      <h1 style="margin:0; font-size: 20px;">SCAFFOLDING JOB COMPLETION REPORT</h1>
-    </div>
-    
-    <div class="summary-section">
-      <div class="stat-box">
-        <strong>DATE:</strong> <span id="rpt-date"></span><br>
-        <strong>SUPERVISOR:</strong> <span id="rpt-sup-name"></span><br>
-        <strong>AMNS ENGINEER:</strong> <span id="rpt-eng-name"></span>
-      </div>
-      <div class="stat-box">
-        <strong>TOTAL MANPOWER:</strong> <span id="rpt-mp"></span><br>
-        <strong>TOTAL MANHOURS:</strong> <span id="rpt-mh"></span><br>
-        <strong>PRODUCTIVITY:</strong> <span id="rpt-prod"></span>
-      </div>
-      <div class="stat-box">
-        <strong>TOTAL ERECTION:</strong> <span id="rpt-ere"></span> m³<br>
-        <strong>TOTAL DISMANTLING:</strong> <span id="rpt-dis"></span> m³<br>
-        <strong>EQUIVALENT VOL:</strong> <span id="rpt-eqv"></span> m³
-      </div>
-    </div>
-
-    <table class="report-table">
-      <thead class="report-header">
-        <tr>
-          <th style="width:30px">SL</th>
-          <th style="width:60px">Sheet No</th>
-          <th style="width:60px">Date</th>
-          <th style="width:60px">Tag No</th>
-          <th style="width:60px">Area</th>
-          <th style="width:70px">Dept</th>
-          <th style="width:70px">Job Type</th>
-          <th style="width:80px">Location</th>
-          <th style="width:70px">Scaffold</th>
-          <th style="width:50px">Elev.</th>
-          <th style="width:70px">Sup Name</th>
-          <th style="width:70px">Eng Name</th>
-          <th style="width:30px">L</th>
-          <th style="width:30px">W</th>
-          <th style="width:30px">H</th>
-          <th style="width:30px">Nos</th>
-          <th style="width:50px">Volume</th>
-        </tr>
-      </thead>
-      <tbody id="rpt-table-body"></tbody>
-    </table>
-
-    <div style="margin-top: 40px; display: flex; justify-content: space-around;">
-      <div style="text-align: center; width: 250px; border-top: 1px solid #000; padding-top: 5px; font-size: 12px;">
-        <strong>Supervisor Signature</strong>
-      </div>
-      <div style="text-align: center; width: 250px; border-top: 1px solid #000; padding-top: 5px; font-size: 12px;">
-        <strong>AMNS Engineer Signature</strong>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const APP_URL = "https://script.google.com/macros/s/AKfycbxkzRv-FufgO4unbMAMmKrKQ36tdLttDa5UblizEq7p0uFs1fcUl3SKeVmeuPVdo7PfOg/exec";
-    let sessionData = { supervisor: '', entries: [], date: '', stats: {} };
-
-    async function apiCall(action, payload = {}) {
-      const res = await fetch(APP_URL, { method: 'POST', body: JSON.stringify({ action, ...payload }) });
-      return await res.json();
-    }
-
-    window.onload = async function() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('f-date').value = today;
-      sessionData.date = today;
-      const data = await apiCall('getAppData');
-      if(data) {
-        fillDrop('login-username', data.users);
-        fillDrop('f-area', data.areas);
-        fillDrop('f-dept', data.departments);
-        fillDrop('f-scaffold', data.scaffoldingTypes);
-        fillDrop('f-elevation', data.elevations);
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('login-screen').classList.remove('hidden');
-      }
-    };
-
-    function fillDrop(id, list) {
-      const el = document.getElementById(id);
-      list.forEach(i => el.innerHTML += `<option value="${i}">${i}</option>`);
-    }
-
-    async function handleLogin() {
-      const user = document.getElementById('login-username').value;
-      const pass = document.getElementById('login-passcode').value;
-      const res = await apiCall('login', { username: user, passcode: pass });
-      if(res?.valid) {
-        sessionData.supervisor = user;
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('form-screen').classList.remove('hidden');
-        document.getElementById('display-supervisor').innerText = "Sup: " + user;
-      } else alert("Invalid Passcode");
-    }
-
-    function calcVol() {
-      const l = parseFloat(document.getElementById('f-l').value) || 0;
-      const w = parseFloat(document.getElementById('f-w').value) || 0;
-      const h = parseFloat(document.getElementById('f-h').value) || 0;
-      const n = parseFloat(document.getElementById('f-nos').value) || 0;
-      const v = l * w * h * n;
-      document.getElementById('display-vol').innerText = v.toFixed(2);
-      return v;
-    }
-
-    function toB64(file) { return new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result); }); }
-
-    async function addEntry() {
-      const type = document.getElementById('f-jobtype').value;
-      if(!type) return alert("Select Job Type");
-      
-      const photoFile = document.getElementById('f-photo').files[0];
-      const photoData = photoFile ? await toB64(photoFile) : null;
-
-      const entry = {
-        sheetNo: document.getElementById('f-sheet').value || "-",
-        date: document.getElementById('f-date').value,
-        tagNo: document.getElementById('f-tag').value || "-",
-        area: document.getElementById('f-area').value,
-        dept: document.getElementById('f-dept').value,
-        jobType: type,
-        workLoc: document.getElementById('f-location').value || "-",
-        scafType: document.getElementById('f-scaffold').value,
-        elev: document.getElementById('f-elevation').value,
-        l: document.getElementById('f-l').value || 0,
-        w: document.getElementById('f-w').value || 0,
-        h: document.getElementById('f-h').value || 0,
-        nos: document.getElementById('f-nos').value || 0,
-        vol: calcVol(),
-        image: photoData // PHOTO DATA SAVED IN SESSION
-      };
-      
-      sessionData.entries.push(entry);
-      document.getElementById('entry-count').innerText = "Entries: " + sessionData.entries.length;
-      renderMiniList();
-      document.getElementById('job-form').reset();
-      document.getElementById('f-date').value = sessionData.date;
-    }
-
-    function renderMiniList() {
-      const list = document.getElementById('entry-list');
-      list.innerHTML = sessionData.entries.map((e, i) => `
-        <div class="bg-white p-2 border rounded flex justify-between text-xs">
-          <span>${e.jobType}: ${e.vol.toFixed(2)}m³</span>
-          <button type="button" onclick="sessionData.entries.splice(${i},1);renderMiniList();" class="text-red-500">Remove</button>
+    <div id="quiz-screen" class="hidden">
+        <div id="ai-host">
+            <svg class="character-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="#ffe0bd"/>
+                <circle class="eye left-eye" cx="35" cy="40" r="5" />
+                <circle class="eye right-eye" cx="65" cy="40" r="5" />
+                <path id="mouth" d="M 35 70 Q 50 80 65 70" stroke="#333" stroke-width="3" fill="transparent" />
+            </svg>
         </div>
-      `).join('');
+        <div class="bubble" id="ai-speech">Hello! I'm your host. Good luck!</div>
+        
+        <h3 id="question-text">Loading question...</h3>
+        <div id="options-container"></div>
+        <p>Question <span id="q-count">1</span>/20</p>
+    </div>
+
+    <div id="result-screen" class="hidden">
+        <h2>Quiz Complete!</h2>
+        <p id="final-score-text"></p>
+        <p>Your report is being generated and downloaded...</p>
+        <button onclick="location.reload()">Restart Quiz</button>
+    </div>
+</div>
+
+<div id="report-template">
+    <h1 style="color:#6c5ce7">Quiz Performance Report</h1>
+    <hr>
+    <div id="report-meta" style="font-size: 20px; margin-bottom: 20px;"></div>
+    <table id="report-table" style="width:100%; border-collapse: collapse; text-align: left;">
+        <thead>
+            <tr style="background: #eee;">
+                <th style="padding:10px; border:1px solid #ddd;">Question</th>
+                <th style="padding:10px; border:1px solid #ddd;">Your Answer</th>
+                <th style="padding:10px; border:1px solid #ddd;">Correct Answer</th>
+            </tr>
+        </thead>
+        <tbody id="report-body"></tbody>
+    </table>
+</div>
+
+<script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSxcEdtVMVmRWFHzJAE5ZbOnBENM8kuKHwI5SbUBAnkMXBNlHpA-4RqAEhPUCaEaPzL0D8wsEBdAOds/pub?gid=0&single=true&output=csv';
+    
+    let questions = [];
+    let currentQ = 0;
+    let score = 0;
+    let userData = { name: '', mobile: '' };
+    let userLog = []; // Stores answers for report
+
+    // Fetch and Parse CSV
+    async function loadQuestions() {
+        try {
+            const response = await fetch(CSV_URL);
+            const data = await response.text();
+            const rows = data.split('\n').slice(1); // Skip header
+            
+            questions = rows.map(row => {
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex to handle commas inside quotes
+                return {
+                    text: cols[1]?.replace(/"/g, ''),
+                    options: [cols[2], cols[3], cols[4], cols[5]],
+                    correct: cols[6]?.trim().replace(/"/g, '')
+                };
+            }).filter(q => q.text); // Remove empty rows
+
+            questions = questions.sort(() => Math.random() - 0.5).slice(0, 20); // Shuffle and take 20
+        } catch (e) {
+            console.error("Error loading questions:", e);
+            alert("Failed to load quiz data. Please check your internet connection.");
+        }
     }
 
-    function goToFinalize() {
-      if(!sessionData.entries.length) return alert("No entries added!");
-      document.getElementById('form-screen').classList.add('hidden');
-      document.getElementById('finalize-screen').classList.remove('hidden');
+    function startQuiz() {
+        const name = document.getElementById('userName').value;
+        const mobile = document.getElementById('userMobile').value;
+
+        if(!name || !mobile) return alert("Please fill in all details");
+
+        userData = { name, mobile };
+        document.getElementById('entry-screen').classList.add('hidden');
+        document.getElementById('quiz-screen').classList.remove('hidden');
+        showQuestion();
     }
 
-    async function submitAll() {
-      const mp = parseFloat(document.getElementById('final-manpower').value);
-      const eng = document.getElementById('final-eng-name').value;
-      if(!mp || !eng) return alert("Enter Manpower and Engineer Name");
+    function showQuestion() {
+        const q = questions[currentQ];
+        document.getElementById('q-count').innerText = currentQ + 1;
+        document.getElementById('question-text').innerText = q.text;
+        document.getElementById('ai-speech').innerText = "Pick the right answer!";
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
 
-      const btn = document.getElementById('btn-submit-all');
-      btn.innerText = "Submitting..."; btn.disabled = true;
-
-      const ere = sessionData.entries.filter(e => e.jobType === "Erection").reduce((a, b) => a + b.vol, 0);
-      const dis = sessionData.entries.filter(e => e.jobType === "Dismantling").reduce((a, b) => a + b.vol, 0);
-      const mh = mp * 12;
-      const eqv = ere + (dis / 2);
-      const prod = mh > 0 ? (eqv / mh).toFixed(3) : 0;
-      sessionData.stats = { mp, eng, mh, ere, dis, eqv, prod };
-
-      const res = await apiCall('submit', { payload: { 
-        supervisor: sessionData.supervisor, 
-        global: { amnsEngName: eng, totalManpower: mp, date: sessionData.date }, 
-        entries: sessionData.entries 
-      }});
-
-      if(res.success) {
-        await drawReport();
-        document.getElementById('finalize-screen').classList.add('hidden');
-        document.getElementById('success-screen').classList.remove('hidden');
-      } else {
-        alert("Submission Failed");
-        btn.innerText = "SUBMIT & DOWNLOAD REPORT"; btn.disabled = false;
-      }
+        q.options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'option-btn';
+            btn.innerText = opt;
+            btn.onclick = () => checkAnswer(opt, btn);
+            container.appendChild(btn);
+        });
     }
 
-    async function drawReport() {
-      const s = sessionData.stats;
-      document.getElementById('rpt-date').innerText = sessionData.date;
-      document.getElementById('rpt-sup-name').innerText = sessionData.supervisor;
-      document.getElementById('rpt-eng-name').innerText = s.eng;
-      document.getElementById('rpt-mp').innerText = s.mp;
-      document.getElementById('rpt-mh').innerText = s.mh;
-      document.getElementById('rpt-ere').innerText = s.ere.toFixed(2);
-      document.getElementById('rpt-dis').innerText = s.dis.toFixed(2);
-      document.getElementById('rpt-eqv').innerText = s.eqv.toFixed(2);
-      document.getElementById('rpt-prod').innerText = s.prod;
+    function checkAnswer(selected, btn) {
+        const correct = questions[currentQ].correct;
+        const allBtns = document.querySelectorAll('.option-btn');
+        allBtns.forEach(b => b.disabled = true);
 
-      const body = document.getElementById('rpt-table-body');
-      body.innerHTML = sessionData.entries.map((e, i) => `
-        <tr>
-          <td>${i+1}</td>
-          <td>${e.sheetNo}</td>
-          <td>${e.date}</td>
-          <td>${e.tagNo}</td>
-          <td>${e.area}</td>
-          <td>${e.dept}</td>
-          <td>${e.jobType}</td>
-          <td>${e.workLoc}</td>
-          <td>${e.scafType}</td>
-          <td>${e.elev}</td>
-          <td>${sessionData.supervisor}</td>
-          <td>${s.eng}</td>
-          <td>${e.l}</td>
-          <td>${e.w}</td>
-          <td>${e.h}</td>
-          <td>${e.nos}</td>
-          <td>${e.vol.toFixed(2)}</td>
-        </tr>
-      `).join('');
+        userLog.push({
+            q: questions[currentQ].text,
+            user: selected,
+            correct: correct
+        });
 
-      const el = document.getElementById('report-container');
-      el.style.display = 'block';
-      const canvas = await html2canvas(el, { scale: 2 });
-      const img = canvas.toDataURL('image/jpeg', 0.9);
-      const link = document.createElement('a');
-      link.download = `Report_${sessionData.date}.jpg`;
-      link.href = img;
-      link.click();
-      el.style.display = 'none';
+        if(selected.trim() === correct.trim()) {
+            score++;
+            btn.classList.add('correct');
+            triggerAIReaction(true);
+        } else {
+            btn.classList.add('wrong');
+            // Highlight the correct one
+            allBtns.forEach(b => {
+                if(b.innerText.trim() === correct.trim()) b.classList.add('correct');
+            });
+            triggerAIReaction(false);
+        }
+
+        setTimeout(() => {
+            currentQ++;
+            if(currentQ < 20) {
+                showQuestion();
+            } else {
+                finishQuiz();
+            }
+        }, 2000);
     }
 
-    function getSummary() {
-      const s = sessionData.stats;
-      return `*SCAFFOLDING REPORT*\nDATE: ${sessionData.date}\nSUPERVISOR: ${sessionData.supervisor}\nMANPOWER: ${s.mp}\nMANHOURS: ${s.mh}\nERECTION: ${s.ere.toFixed(2)} m³\nDISMANTLING: ${s.dis.toFixed(2)} m³\nEQV VOLUME: ${s.eqv.toFixed(2)} m³\nPRODUCTIVITY: ${s.prod}`;
+    function triggerAIReaction(isCorrect) {
+        const leftEye = document.querySelector('.left-eye');
+        const speech = document.getElementById('ai-speech');
+        const mouth = document.getElementById('mouth');
+
+        if(isCorrect) {
+            leftEye.classList.add('wink');
+            speech.innerText = "Awesome! That's correct! ✨";
+            mouth.setAttribute('d', 'M 30 70 Q 50 90 70 70'); // Bigger smile
+        } else {
+            speech.innerText = `Not quite! The correct answer was: ${questions[currentQ].correct}`;
+            mouth.setAttribute('d', 'M 35 75 Q 50 75 65 75'); // Flat smile
+        }
+
+        setTimeout(() => {
+            leftEye.classList.remove('wink');
+            mouth.setAttribute('d', 'M 35 70 Q 50 80 65 70');
+        }, 1500);
     }
 
-    function copyWhatsAppText() {
-      navigator.clipboard.writeText(getSummary());
-      alert("Summary copied!");
+    async function finishQuiz() {
+        document.getElementById('quiz-screen').classList.add('hidden');
+        document.getElementById('result-screen').classList.remove('hidden');
+        document.getElementById('final-score-text').innerText = `You scored ${score} out of 20!`;
+
+        generateReport();
     }
 
-    function shareWhatsApp() {
-      window.open(`https://wa.me/?text=${encodeURIComponent(getSummary())}`, '_blank');
+    async function generateReport() {
+        // Populate Hidden Report
+        document.getElementById('report-meta').innerHTML = `
+            <strong>Name:</strong> ${userData.name} | <strong>Mobile:</strong> ${userData.mobile}<br>
+            <strong>Total Score:</strong> ${score} / 20
+        `;
+
+        const body = document.getElementById('report-body');
+        userLog.forEach(item => {
+            const row = `<tr>
+                <td style="padding:8px; border:1px solid #ddd;">${item.q}</td>
+                <td style="padding:8px; border:1px solid #ddd; color:${item.user === item.correct ? 'green' : 'red'}">${item.user}</td>
+                <td style="padding:8px; border:1px solid #ddd; color:green">${item.correct}</td>
+            </tr>`;
+            body.innerHTML += row;
+        });
+
+        // Convert to Image
+        const reportDiv = document.getElementById('report-template');
+        const canvas = await html2canvas(reportDiv);
+        const link = document.createElement('a');
+        link.download = `${userData.name}_Quiz_Report.jpg`;
+        link.href = canvas.toDataURL('image/jpeg', 0.9);
+        link.click();
     }
-  </script>
+
+    // Initialize
+    loadQuestions();
+</script>
+
 </body>
 </html>
