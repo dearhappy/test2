@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supervisor Job Tracker</title>
+  
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -13,13 +16,14 @@
     .loader { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
     @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
-    /* Report Print Styles */
     #report-container {
       width: 210mm;
       min-height: 297mm;
       background: white;
       padding: 20mm;
-      display: none; /* Hidden until generation */
+      display: none; 
+      position: absolute; 
+      top: 0; left: 0; z-index: -1;
     }
   </style>
 </head>
@@ -29,7 +33,8 @@
 
     <div id="loading" class="text-center py-10">
       <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div>
-      <h2 class="text-xl font-semibold text-gray-700">Loading Configuration...</h2>
+      <h2 class="text-xl font-semibold text-gray-700">Connecting to Server...</h2>
+      <p class="text-xs text-gray-500 mt-2">This may take a few seconds</p>
     </div>
 
     <div id="login-screen" class="card p-6 hidden">
@@ -39,13 +44,13 @@
           <label class="block text-sm font-medium text-gray-700">Supervisor Name</label>
           <select id="login-username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border bg-gray-50 focus:border-blue-500">
             <option value="">Select Name</option>
-            </select>
+          </select>
         </div>
         <div>
           <label class="block text-sm font-medium text-gray-700">Passcode</label>
           <input type="password" id="login-passcode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border bg-gray-50 focus:border-blue-500" placeholder="Enter code">
         </div>
-        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition">LOGIN</button>
+        <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition">LOGIN</button>
         <p id="login-error" class="text-red-500 text-center text-sm hidden">Invalid Credentials</p>
       </div>
     </div>
@@ -58,7 +63,6 @@
         </div>
         
         <form id="job-form" class="space-y-3">
-          
           <div class="grid grid-cols-2 gap-2">
             <div>
               <label class="text-xs font-bold text-gray-700">Date</label>
@@ -83,9 +87,7 @@
 
           <div>
              <label class="text-xs font-bold text-gray-700">Job Type</label>
-             <select id="f-jobtype" class="w-full border rounded p-2 text-sm">
-               <option value="">Select</option>
-             </select>
+             <select id="f-jobtype" class="w-full border rounded p-2 text-sm"><option value="">Select</option></select>
           </div>
 
           <div class="grid grid-cols-2 gap-2">
@@ -130,42 +132,30 @@
              <button type="button" onclick="addEntry()" class="flex-1 bg-green-600 text-white py-2 rounded shadow text-sm font-bold"><i class="fas fa-plus mr-1"></i> Add Entry</button>
              <button type="button" onclick="goToFinalize()" class="flex-1 bg-blue-600 text-white py-2 rounded shadow text-sm font-bold">Finish</button>
           </div>
-
         </form>
       </div>
-      
       <div id="entry-list" class="space-y-2 pb-10"></div>
     </div>
 
     <div id="finalize-screen" class="hidden card p-6">
        <h3 class="text-lg font-bold mb-4">Final Details</h3>
-       
        <div class="mb-4">
          <label class="block text-sm font-bold mb-1">AMNS Engineer Name</label>
          <input type="text" id="final-eng-name" class="w-full border p-2 rounded">
        </div>
-
        <div class="mb-4">
          <label class="block text-sm font-bold mb-1">Total Manpower</label>
          <input type="number" id="final-manpower" class="w-full border p-2 rounded">
        </div>
-
-       <button onclick="submitAll()" id="btn-submit-all" class="w-full bg-indigo-600 text-white p-3 rounded font-bold shadow-lg">
-         SUBMIT & GENERATE REPORT
-       </button>
+       <button onclick="submitAll()" id="btn-submit-all" class="w-full bg-indigo-600 text-white p-3 rounded font-bold shadow-lg">SUBMIT & GENERATE REPORT</button>
     </div>
 
     <div id="success-screen" class="hidden card p-6 text-center">
        <div class="text-green-500 text-5xl mb-4"><i class="fas fa-check-circle"></i></div>
        <h2 class="text-xl font-bold mb-2">Submission Successful!</h2>
        <p class="text-sm text-gray-600 mb-4">Report downloaded automatically.</p>
-       
-       <button onclick="shareWhatsApp()" class="w-full bg-green-500 text-white p-3 rounded font-bold mb-2">
-         <i class="fab fa-whatsapp mr-2"></i> Share on WhatsApp
-       </button>
-       <button onclick="reloadSession()" class="w-full bg-gray-200 text-gray-700 p-3 rounded font-bold">
-         Back to Login
-       </button>
+       <button onclick="shareWhatsApp()" class="w-full bg-green-500 text-white p-3 rounded font-bold mb-2"><i class="fab fa-whatsapp mr-2"></i> Share on WhatsApp</button>
+       <button onclick="location.reload()" class="w-full bg-gray-200 text-gray-700 p-3 rounded font-bold">Back to Login</button>
     </div>
 
   </div>
@@ -174,9 +164,8 @@
     <div style="border: 2px solid black; padding: 10px; height: 100%; position: relative;">
       <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
         <h1 style="font-size: 24px; font-weight: bold; text-transform: uppercase;">Supervisor Job Completion Report</h1>
-        <p style="font-size: 14px;" id="rpt-date">Date: </p>
+        <p style="font-size: 14px;" id="rpt-date"></p>
       </div>
-
       <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
         <div>
           <p><strong>Supervisor:</strong> <span id="rpt-sup-name"></span></p>
@@ -187,7 +176,6 @@
           <p><strong>Total Manpower:</strong> <span id="rpt-manpower"></span></p>
         </div>
       </div>
-
       <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
         <thead>
           <tr style="background-color: #eee;">
@@ -198,42 +186,51 @@
             <th style="border: 1px solid black; padding: 5px;">Vol</th>
           </tr>
         </thead>
-        <tbody id="rpt-table-body">
-          </tbody>
+        <tbody id="rpt-table-body"></tbody>
       </table>
-
       <div style="position: absolute; bottom: 20px; left: 10px; right: 10px; display: flex; justify-content: space-between;">
         <div style="text-align: center; border-top: 1px solid black; width: 150px; padding-top: 5px;">
-          <p id="sign-sup" style="font-weight: bold;"></p>
-          <p>Supervisor Signature</p>
+          <p id="sign-sup" style="font-weight: bold;"></p><p>Supervisor Signature</p>
         </div>
         <div style="text-align: center; border-top: 1px solid black; width: 150px; padding-top: 5px;">
-          <p id="sign-eng" style="font-weight: bold;"></p>
-          <p>AMNS Eng. Signature</p>
+          <p id="sign-eng" style="font-weight: bold;"></p><p>AMNS Eng. Signature</p>
         </div>
       </div>
     </div>
   </div>
 
   <script>
-    // --- APP URL CONFIGURATION ---
+    // URL from your previous message
     const APP_URL = "https://script.google.com/macros/s/AKfycbxkzRv-FufgO4unbMAMmKrKQ36tdLttDa5UblizEq7p0uFs1fcUl3SKeVmeuPVdo7PfOg/exec";
 
-    // --- STATE MANAGEMENT ---
     let appData = {};
-    let sessionData = {
-      supervisor: '',
-      entries: [],
-      date: new Date().toISOString().split('T')[0]
-    };
+    let sessionData = { supervisor: '', entries: [], date: new Date().toISOString().split('T')[0] };
+
+    // --- API HELPER (Replaces google.script.run) ---
+    async function apiCall(action, payload = {}) {
+      try {
+        const body = JSON.stringify({ action: action, ...payload });
+        
+        // IMPORTANT: We use method POST but DO NOT set Content-Type to application/json.
+        // This prevents the browser from sending an OPTIONS (Preflight) request which GAS cannot handle.
+        const response = await fetch(APP_URL, {
+          method: 'POST',
+          body: body
+        });
+        
+        return await response.json();
+      } catch (error) {
+        alert("Connection Error: " + error.message);
+        return null;
+      }
+    }
 
     // --- INITIALIZATION ---
-    window.onload = function() {
-      // Set default date
-      const dateEl = document.getElementById('f-date');
-      if(dateEl) dateEl.value = sessionData.date;
+    window.onload = async function() {
+      document.getElementById('f-date').value = sessionData.date;
       
-      google.script.run.withSuccessHandler(function(data) {
+      const data = await apiCall('getAppData');
+      if(data) {
         appData = data;
         populateDropdown('login-username', appData.users);
         populateDropdown('f-area', appData.areas);
@@ -241,10 +238,9 @@
         populateDropdown('f-jobtype', appData.jobTypes);
         populateDropdown('f-scaffold', appData.scaffoldingTypes);
         populateDropdown('f-elevation', appData.elevations);
-        
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('login-screen').classList.remove('hidden');
-      }).getAppData();
+      }
     };
 
     function populateDropdown(id, list) {
@@ -252,38 +248,33 @@
       if(!list || !el) return;
       list.forEach(item => {
         const opt = document.createElement('option');
-        opt.value = item;
-        opt.textContent = item;
-        el.appendChild(opt);
+        opt.value = item; opt.textContent = item; el.appendChild(opt);
       });
     }
 
-    // --- AUTHENTICATION ---
-    function handleLogin() {
+    // --- AUTH ---
+    async function handleLogin() {
       const user = document.getElementById('login-username').value;
       const pass = document.getElementById('login-passcode').value;
-      
       if(!user || !pass) return alert("Please fill details");
-      
-      // Basic UI Loading state
-      const btn = event.target;
-      const originalText = btn.innerText;
+
+      const btn = document.getElementById('btn-login');
       btn.innerText = "Verifying...";
       
-      google.script.run.withSuccessHandler(function(isValid) {
-        if(isValid) {
-          sessionData.supervisor = user;
-          document.getElementById('display-supervisor').innerText = "User: " + user;
-          document.getElementById('login-screen').classList.add('hidden');
-          document.getElementById('form-screen').classList.remove('hidden');
-        } else {
-          document.getElementById('login-error').classList.remove('hidden');
-          btn.innerText = originalText;
-        }
-      }).validateLogin(user, pass);
+      const res = await apiCall('login', { username: user, passcode: pass });
+      
+      if(res && res.valid) {
+        sessionData.supervisor = user;
+        document.getElementById('display-supervisor').innerText = "User: " + user;
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('form-screen').classList.remove('hidden');
+      } else {
+        document.getElementById('login-error').classList.remove('hidden');
+        btn.innerText = "LOGIN";
+      }
     }
 
-    // --- FORM LOGIC ---
+    // --- FORM LOGIC (Calculations & Validations) ---
     function calcVol() {
       const l = parseFloat(document.getElementById('f-l').value);
       const w = parseFloat(document.getElementById('f-w').value);
@@ -291,28 +282,22 @@
       const nos = parseFloat(document.getElementById('f-nos').value);
       
       const dims = [l, w, h, nos];
-      // Logic: Multiply available numbers, treat missing as benign unless all missing
       let vol = dims.reduce((acc, val) => (!isNaN(val) && val !== 0) ? acc * val : acc, 1);
-      
-      // If nothing entered, vol is 0
-      const hasInput = dims.some(v => !isNaN(v) && v > 0);
-      if(!hasInput) vol = 0;
+      if(!dims.some(v => !isNaN(v) && v > 0)) vol = 0;
       
       document.getElementById('display-vol').innerText = vol.toFixed(2);
       return vol;
     }
 
     async function addEntry() {
-      // Validate minimal fields (e.g. Job Type)
       const jobType = document.getElementById('f-jobtype').value;
       if(!jobType) return alert("Job Type is required");
 
       const fileInput = document.getElementById('f-photo');
       let base64Img = null;
+      if (fileInput.files.length > 0) base64Img = await toBase64(fileInput.files[0]);
 
-      if (fileInput.files.length > 0) {
-        base64Img = await toBase64(fileInput.files[0]);
-      }
+      sessionData.date = document.getElementById('f-date').value;
 
       const entry = {
         sheetNo: document.getElementById('f-sheet').value,
@@ -331,53 +316,28 @@
         image: base64Img
       };
 
-      // Update Session Date based on input
-      sessionData.date = document.getElementById('f-date').value;
-
       sessionData.entries.push(entry);
       renderEntryList();
       resetForm();
     }
 
     function resetForm() {
-      // Keep date, clear others
-      document.getElementById('f-sheet').value = '';
-      document.getElementById('f-tag').value = '';
-      document.getElementById('f-location').value = '';
-      document.getElementById('f-l').value = '';
-      document.getElementById('f-w').value = '';
-      document.getElementById('f-h').value = '';
-      document.getElementById('f-nos').value = '';
-      document.getElementById('f-photo').value = '';
+      const fields = ['f-sheet','f-tag','f-location','f-l','f-w','f-h','f-nos','f-photo','f-jobtype','f-scaffold','f-elevation'];
+      fields.forEach(id => document.getElementById(id).value = '');
       document.getElementById('display-vol').innerText = '0';
-      // Dropdowns reset
-      document.getElementById('f-jobtype').value = '';
-      document.getElementById('f-scaffold').value = '';
-      document.getElementById('f-elevation').value = '';
     }
 
     function renderEntryList() {
       const list = document.getElementById('entry-list');
       list.innerHTML = '';
       document.getElementById('entry-count').innerText = `Entries: ${sessionData.entries.length}`;
-
       sessionData.entries.forEach((e, i) => {
         const div = document.createElement('div');
         div.className = "bg-white p-3 rounded border shadow-sm flex justify-between items-center text-sm";
-        div.innerHTML = `
-          <div>
-            <div class="font-bold">${e.jobType}</div>
-            <div class="text-xs text-gray-500">${e.sheetNo || e.workLocation}</div>
-          </div>
-          <div class="text-red-500 cursor-pointer" onclick="removeEntry(${i})"><i class="fas fa-trash"></i></div>
-        `;
+        div.innerHTML = `<div><div class="font-bold">${e.jobType}</div><div class="text-xs text-gray-500">${e.sheetNo || e.workLocation}</div></div>
+          <div class="text-red-500 cursor-pointer" onclick="sessionData.entries.splice(${i},1);renderEntryList();"><i class="fas fa-trash"></i></div>`;
         list.appendChild(div);
       });
-    }
-
-    function removeEntry(index) {
-      sessionData.entries.splice(index, 1);
-      renderEntryList();
     }
 
     function goToFinalize() {
@@ -395,108 +355,86 @@
       });
     }
 
-    // --- SUBMISSION & REPORT ---
-    function submitAll() {
+    // --- SUBMIT ---
+    async function submitAll() {
       const amnsName = document.getElementById('final-eng-name').value;
       const manpower = document.getElementById('final-manpower').value;
-      
       if(!amnsName) return alert("Please enter AMNS Engineer Name");
 
       const btn = document.getElementById('btn-submit-all');
-      btn.innerText = "Processing...";
+      btn.innerText = "Uploading...";
       btn.disabled = true;
 
       const payload = {
         supervisor: sessionData.supervisor,
-        global: {
-          amnsEngName: amnsName,
-          totalManpower: manpower,
-          date: sessionData.date
-        },
+        global: { amnsEngName: amnsName, totalManpower: manpower, date: sessionData.date },
         entries: sessionData.entries
       };
 
-      // 1. Submit to Google Sheets
-      google.script.run.withSuccessHandler(function(response) {
-        if(response.success) {
-          // 2. Generate Report
-          generateAndDownloadReport(payload);
-          document.getElementById('finalize-screen').classList.add('hidden');
-          document.getElementById('success-screen').classList.remove('hidden');
-        } else {
-          alert("Error submitting: " + response.error);
-          btn.disabled = false;
-          btn.innerText = "SUBMIT & GENERATE REPORT";
-        }
-      }).submitJobData(payload);
+      const res = await apiCall('submit', { payload: payload });
+
+      if(res && res.success) {
+        generateAndDownloadReport(payload);
+        document.getElementById('finalize-screen').classList.add('hidden');
+        document.getElementById('success-screen').classList.remove('hidden');
+      } else {
+        alert("Error: " + (res ? res.error : "Unknown Error"));
+        btn.disabled = false;
+        btn.innerText = "SUBMIT & GENERATE REPORT";
+      }
     }
 
-    // --- REPORT GENERATION ---
+    // --- REPORT & SHARE ---
     function generateAndDownloadReport(data) {
-      // Populate hidden HTML
       document.getElementById('rpt-date').innerText = "Date: " + data.global.date;
       document.getElementById('rpt-sup-name').innerText = data.supervisor;
       document.getElementById('rpt-eng-name').innerText = data.global.amnsEngName;
       document.getElementById('rpt-total-entries').innerText = data.entries.length;
       document.getElementById('rpt-manpower').innerText = data.global.totalManpower;
-      
       document.getElementById('sign-sup').innerText = data.supervisor;
       document.getElementById('sign-eng').innerText = data.global.amnsEngName;
 
       const tbody = document.getElementById('rpt-table-body');
       tbody.innerHTML = '';
-      
-      data.entries.forEach((e, index) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="border: 1px solid black; padding: 4px;">${index + 1}</td>
-          <td style="border: 1px solid black; padding: 4px;">${e.sheetNo || e.workLocation}</td>
-          <td style="border: 1px solid black; padding: 4px;">${e.jobType}</td>
-          <td style="border: 1px solid black; padding: 4px;">L:${e.l} W:${e.w} H:${e.h} Nos:${e.nos}</td>
-          <td style="border: 1px solid black; padding: 4px;">${e.volume}</td>
-        `;
-        tbody.appendChild(tr);
+      data.entries.forEach((e, i) => {
+        tbody.innerHTML += `<tr>
+          <td style="border:1px solid black;padding:4px;">${i+1}</td>
+          <td style="border:1px solid black;padding:4px;">${e.sheetNo || e.workLocation}</td>
+          <td style="border:1px solid black;padding:4px;">${e.jobType}</td>
+          <td style="border:1px solid black;padding:4px;">L:${e.l} W:${e.w} H:${e.h} Nos:${e.nos}</td>
+          <td style="border:1px solid black;padding:4px;">${e.volume}</td>
+        </tr>`;
       });
 
       const element = document.getElementById('report-container');
-      element.style.display = 'block'; // Make visible for capture
+      element.style.display = 'block';
 
-      // Capture as Image & PDF
       html2canvas(element, { scale: 2 }).then(canvas => {
-        // Download JPG
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // JPG Download
         const link = document.createElement('a');
         link.download = `Report_${data.global.date}_${data.supervisor}.jpg`;
         link.href = imgData;
         link.click();
 
-        // Download PDF
+        // PDF Download
         const { jsPDF } = window.jspdf;
         const pdf = new jsPDF('p', 'mm', 'a4');
         const imgProps = pdf.getImageProperties(imgData);
         const pdfWidth = pdf.internal.pageSize.getWidth();
         const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-        
         pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
         pdf.save(`Report_${data.global.date}_${data.supervisor}.pdf`);
 
-        element.style.display = 'none'; // Hide again
+        element.style.display = 'none';
       });
     }
 
-    function reloadSession() {
-      // Redirect to the Web App URL to fully refresh the session
-      window.top.location.href = APP_URL;
-    }
-
     function shareWhatsApp() {
-      const text = `*Job Completion Report*\nSupervisor: ${sessionData.supervisor}\nDate: ${sessionData.date}\nEntries: ${sessionData.entries.length}\n*Report file has been downloaded to device.*`;
+      const text = `*Job Completion*\nSup: ${sessionData.supervisor}\nDate: ${sessionData.date}\nEntries: ${sessionData.entries.length}\n*Report downloaded.*`;
       window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
-      
-      // Auto-close session after 2 seconds
-      setTimeout(() => {
-        reloadSession();
-      }, 2000);
+      setTimeout(() => location.reload(), 2000);
     }
   </script>
 </body>
