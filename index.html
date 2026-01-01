@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+  <style>
+    body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
+    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    .loader { border-top-color: #3b82f6; -webkit-animation: spinner 1.5s linear infinite; animation: spinner 1.5s linear infinite; }
+    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    
+    /* Report Print Styles */
+    #report-container {
+      width: 210mm;
+      min-height: 297mm;
+      background: white;
+      padding: 20mm;
+      display: none; /* Hidden until generation */
+    }
+  </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+  <div id="app" class="w-full max-w-md">
+
+    <div id="loading" class="text-center py-10">
+      <div class="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div>
+      <h2 class="text-xl font-semibold text-gray-700">Loading Configuration...</h2>
+    </div>
+
+    <div id="login-screen" class="card p-6 hidden">
+      <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Supervisor Login</h2>
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Supervisor Name</label>
+          <select id="login-username" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border bg-gray-50 focus:border-blue-500">
+            <option value="">Select Name</option>
+            </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">Passcode</label>
+          <input type="password" id="login-passcode" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm p-3 border bg-gray-50 focus:border-blue-500" placeholder="Enter code">
+        </div>
+        <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold hover:bg-blue-700 transition">LOGIN</button>
+        <p id="login-error" class="text-red-500 text-center text-sm hidden">Invalid Credentials</p>
+      </div>
+    </div>
+
+    <div id="form-screen" class="hidden">
+      <div class="card p-4 mb-4">
+        <div class="flex justify-between items-center mb-2">
+          <span class="text-xs font-bold text-gray-500" id="display-supervisor"></span>
+          <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded" id="entry-count">Entries: 0</span>
+        </div>
+        
+        <form id="job-form" class="space-y-3">
+          
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-bold text-gray-700">Date</label>
+              <input type="date" id="f-date" class="w-full border rounded p-2 text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-700">Sheet No.</label>
+              <input type="text" id="f-sheet" class="w-full border rounded p-2 text-sm" placeholder="Ref No">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+             <div>
+              <label class="text-xs font-bold text-gray-700">Area</label>
+              <select id="f-area" class="w-full border rounded p-2 text-sm"><option value="">Select</option></select>
+            </div>
+            <div>
+               <label class="text-xs font-bold text-gray-700">Department</label>
+               <select id="f-dept" class="w-full border rounded p-2 text-sm"><option value="">Select</option></select>
+            </div>
+          </div>
+
+          <div>
+             <label class="text-xs font-bold text-gray-700">Job Type</label>
+             <select id="f-jobtype" class="w-full border rounded p-2 text-sm">
+               <option value="">Select</option>
+             </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-xs font-bold text-gray-700">Tag No.</label>
+              <input type="text" id="f-tag" class="w-full border rounded p-2 text-sm">
+            </div>
+            <div>
+              <label class="text-xs font-bold text-gray-700">Work Location</label>
+              <input type="text" id="f-location" class="w-full border rounded p-2 text-sm">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+             <div>
+              <label class="text-xs font-bold text-gray-700">Scaffold Type</label>
+              <select id="f-scaffold" class="w-full border rounded p-2 text-sm"><option value="">Select</option></select>
+            </div>
+             <div>
+              <label class="text-xs font-bold text-gray-700">Elevation</label>
+              <select id="f-elevation" class="w-full border rounded p-2 text-sm"><option value="">Select</option></select>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 p-2 rounded border">
+            <label class="text-xs font-bold text-gray-700 block mb-1">Dimensions (Meters)</label>
+            <div class="flex space-x-2">
+              <input type="number" id="f-l" placeholder="L" class="w-1/4 border rounded p-2 text-sm" oninput="calcVol()">
+              <input type="number" id="f-w" placeholder="W" class="w-1/4 border rounded p-2 text-sm" oninput="calcVol()">
+              <input type="number" id="f-h" placeholder="H" class="w-1/4 border rounded p-2 text-sm" oninput="calcVol()">
+              <input type="number" id="f-nos" placeholder="Nos" class="w-1/4 border rounded p-2 text-sm" oninput="calcVol()">
+            </div>
+            <div class="text-right mt-1 text-xs text-blue-600 font-bold">Vol: <span id="display-vol">0</span> m³</div>
+          </div>
+
+          <div>
+            <label class="text-xs font-bold text-gray-700">Scaffold Photo</label>
+            <input type="file" id="f-photo" accept="image/*" class="w-full text-xs mt-1">
+          </div>
+
+          <div class="flex space-x-2 pt-2">
+             <button type="button" onclick="addEntry()" class="flex-1 bg-green-600 text-white py-2 rounded shadow text-sm font-bold"><i class="fas fa-plus mr-1"></i> Add Entry</button>
+             <button type="button" onclick="goToFinalize()" class="flex-1 bg-blue-600 text-white py-2 rounded shadow text-sm font-bold">Finish</button>
+          </div>
+
+        </form>
+      </div>
+      
+      <div id="entry-list" class="space-y-2 pb-10"></div>
+    </div>
+
+    <div id="finalize-screen" class="hidden card p-6">
+       <h3 class="text-lg font-bold mb-4">Final Details</h3>
+       
+       <div class="mb-4">
+         <label class="block text-sm font-bold mb-1">AMNS Engineer Name</label>
+         <input type="text" id="final-eng-name" class="w-full border p-2 rounded">
+       </div>
+
+       <div class="mb-4">
+         <label class="block text-sm font-bold mb-1">Total Manpower</label>
+         <input type="number" id="final-manpower" class="w-full border p-2 rounded">
+       </div>
+
+       <button onclick="submitAll()" id="btn-submit-all" class="w-full bg-indigo-600 text-white p-3 rounded font-bold shadow-lg">
+         SUBMIT & GENERATE REPORT
+       </button>
+    </div>
+
+    <div id="success-screen" class="hidden card p-6 text-center">
+       <div class="text-green-500 text-5xl mb-4"><i class="fas fa-check-circle"></i></div>
+       <h2 class="text-xl font-bold mb-2">Submission Successful!</h2>
+       <p class="text-sm text-gray-600 mb-4">Report downloaded automatically.</p>
+       
+       <button onclick="shareWhatsApp()" class="w-full bg-green-500 text-white p-3 rounded font-bold mb-2">
+         <i class="fab fa-whatsapp mr-2"></i> Share on WhatsApp
+       </button>
+       <button onclick="reloadSession()" class="w-full bg-gray-200 text-gray-700 p-3 rounded font-bold">
+         Back to Login
+       </button>
+    </div>
+
+  </div>
+
+  <div id="report-container">
+    <div style="border: 2px solid black; padding: 10px; height: 100%; position: relative;">
+      <div style="text-align: center; border-bottom: 2px solid black; padding-bottom: 10px; margin-bottom: 20px;">
+        <h1 style="font-size: 24px; font-weight: bold; text-transform: uppercase;">Supervisor Job Completion Report</h1>
+        <p style="font-size: 14px;" id="rpt-date">Date: </p>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; margin-bottom: 20px;">
+        <div>
+          <p><strong>Supervisor:</strong> <span id="rpt-sup-name"></span></p>
+          <p><strong>Total Entries:</strong> <span id="rpt-total-entries"></span></p>
+        </div>
+        <div style="text-align: right;">
+          <p><strong>AMNS Engineer:</strong> <span id="rpt-eng-name"></span></p>
+          <p><strong>Total Manpower:</strong> <span id="rpt-manpower"></span></p>
+        </div>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 10px;">
+        <thead>
+          <tr style="background-color: #eee;">
+            <th style="border: 1px solid black; padding: 5px;">SN</th>
+            <th style="border: 1px solid black; padding: 5px;">Sheet/Loc</th>
+            <th style="border: 1px solid black; padding: 5px;">Type</th>
+            <th style="border: 1px solid black; padding: 5px;">Dims (L/W/H/Nos)</th>
+            <th style="border: 1px solid black; padding: 5px;">Vol</th>
+          </tr>
+        </thead>
+        <tbody id="rpt-table-body">
+          </tbody>
+      </table>
+
+      <div style="position: absolute; bottom: 20px; left: 10px; right: 10px; display: flex; justify-content: space-between;">
+        <div style="text-align: center; border-top: 1px solid black; width: 150px; padding-top: 5px;">
+          <p id="sign-sup" style="font-weight: bold;"></p>
+          <p>Supervisor Signature</p>
+        </div>
+        <div style="text-align: center; border-top: 1px solid black; width: 150px; padding-top: 5px;">
+          <p id="sign-eng" style="font-weight: bold;"></p>
+          <p>AMNS Eng. Signature</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- APP URL CONFIGURATION ---
+    const APP_URL = "https://script.google.com/macros/s/AKfycbxkzRv-FufgO4unbMAMmKrKQ36tdLttDa5UblizEq7p0uFs1fcUl3SKeVmeuPVdo7PfOg/exec";
+
+    // --- STATE MANAGEMENT ---
+    let appData = {};
+    let sessionData = {
+      supervisor: '',
+      entries: [],
+      date: new Date().toISOString().split('T')[0]
+    };
+
+    // --- INITIALIZATION ---
+    window.onload = function() {
+      // Set default date
+      const dateEl = document.getElementById('f-date');
+      if(dateEl) dateEl.value = sessionData.date;
+      
+      google.script.run.withSuccessHandler(function(data) {
+        appData = data;
+        populateDropdown('login-username', appData.users);
+        populateDropdown('f-area', appData.areas);
+        populateDropdown('f-dept', appData.departments);
+        populateDropdown('f-jobtype', appData.jobTypes);
+        populateDropdown('f-scaffold', appData.scaffoldingTypes);
+        populateDropdown('f-elevation', appData.elevations);
+        
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('login-screen').classList.remove('hidden');
+      }).getAppData();
+    };
+
+    function populateDropdown(id, list) {
+      const el = document.getElementById(id);
+      if(!list || !el) return;
+      list.forEach(item => {
+        const opt = document.createElement('option');
+        opt.value = item;
+        opt.textContent = item;
+        el.appendChild(opt);
+      });
+    }
+
+    // --- AUTHENTICATION ---
+    function handleLogin() {
+      const user = document.getElementById('login-username').value;
+      const pass = document.getElementById('login-passcode').value;
+      
+      if(!user || !pass) return alert("Please fill details");
+      
+      // Basic UI Loading state
+      const btn = event.target;
+      const originalText = btn.innerText;
+      btn.innerText = "Verifying...";
+      
+      google.script.run.withSuccessHandler(function(isValid) {
+        if(isValid) {
+          sessionData.supervisor = user;
+          document.getElementById('display-supervisor').innerText = "User: " + user;
+          document.getElementById('login-screen').classList.add('hidden');
+          document.getElementById('form-screen').classList.remove('hidden');
+        } else {
+          document.getElementById('login-error').classList.remove('hidden');
+          btn.innerText = originalText;
+        }
+      }).validateLogin(user, pass);
+    }
+
+    // --- FORM LOGIC ---
+    function calcVol() {
+      const l = parseFloat(document.getElementById('f-l').value);
+      const w = parseFloat(document.getElementById('f-w').value);
+      const h = parseFloat(document.getElementById('f-h').value);
+      const nos = parseFloat(document.getElementById('f-nos').value);
+      
+      const dims = [l, w, h, nos];
+      // Logic: Multiply available numbers, treat missing as benign unless all missing
+      let vol = dims.reduce((acc, val) => (!isNaN(val) && val !== 0) ? acc * val : acc, 1);
+      
+      // If nothing entered, vol is 0
+      const hasInput = dims.some(v => !isNaN(v) && v > 0);
+      if(!hasInput) vol = 0;
+      
+      document.getElementById('display-vol').innerText = vol.toFixed(2);
+      return vol;
+    }
+
+    async function addEntry() {
+      // Validate minimal fields (e.g. Job Type)
+      const jobType = document.getElementById('f-jobtype').value;
+      if(!jobType) return alert("Job Type is required");
+
+      const fileInput = document.getElementById('f-photo');
+      let base64Img = null;
+
+      if (fileInput.files.length > 0) {
+        base64Img = await toBase64(fileInput.files[0]);
+      }
+
+      const entry = {
+        sheetNo: document.getElementById('f-sheet').value,
+        tagNo: document.getElementById('f-tag').value,
+        area: document.getElementById('f-area').value,
+        department: document.getElementById('f-dept').value,
+        jobType: jobType,
+        workLocation: document.getElementById('f-location').value,
+        scaffoldingType: document.getElementById('f-scaffold').value,
+        elevation: document.getElementById('f-elevation').value,
+        l: document.getElementById('f-l').value,
+        w: document.getElementById('f-w').value,
+        h: document.getElementById('f-h').value,
+        nos: document.getElementById('f-nos').value,
+        volume: document.getElementById('display-vol').innerText,
+        image: base64Img
+      };
+
+      // Update Session Date based on input
+      sessionData.date = document.getElementById('f-date').value;
+
+      sessionData.entries.push(entry);
+      renderEntryList();
+      resetForm();
+    }
+
+    function resetForm() {
+      // Keep date, clear others
+      document.getElementById('f-sheet').value = '';
+      document.getElementById('f-tag').value = '';
+      document.getElementById('f-location').value = '';
+      document.getElementById('f-l').value = '';
+      document.getElementById('f-w').value = '';
+      document.getElementById('f-h').value = '';
+      document.getElementById('f-nos').value = '';
+      document.getElementById('f-photo').value = '';
+      document.getElementById('display-vol').innerText = '0';
+      // Dropdowns reset
+      document.getElementById('f-jobtype').value = '';
+      document.getElementById('f-scaffold').value = '';
+      document.getElementById('f-elevation').value = '';
+    }
+
+    function renderEntryList() {
+      const list = document.getElementById('entry-list');
+      list.innerHTML = '';
+      document.getElementById('entry-count').innerText = `Entries: ${sessionData.entries.length}`;
+
+      sessionData.entries.forEach((e, i) => {
+        const div = document.createElement('div');
+        div.className = "bg-white p-3 rounded border shadow-sm flex justify-between items-center text-sm";
+        div.innerHTML = `
+          <div>
+            <div class="font-bold">${e.jobType}</div>
+            <div class="text-xs text-gray-500">${e.sheetNo || e.workLocation}</div>
+          </div>
+          <div class="text-red-500 cursor-pointer" onclick="removeEntry(${i})"><i class="fas fa-trash"></i></div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function removeEntry(index) {
+      sessionData.entries.splice(index, 1);
+      renderEntryList();
+    }
+
+    function goToFinalize() {
+      if(sessionData.entries.length === 0) return alert("Add at least one entry.");
+      document.getElementById('form-screen').classList.add('hidden');
+      document.getElementById('finalize-screen').classList.remove('hidden');
+    }
+
+    function toBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    }
+
+    // --- SUBMISSION & REPORT ---
+    function submitAll() {
+      const amnsName = document.getElementById('final-eng-name').value;
+      const manpower = document.getElementById('final-manpower').value;
+      
+      if(!amnsName) return alert("Please enter AMNS Engineer Name");
+
+      const btn = document.getElementById('btn-submit-all');
+      btn.innerText = "Processing...";
+      btn.disabled = true;
+
+      const payload = {
+        supervisor: sessionData.supervisor,
+        global: {
+          amnsEngName: amnsName,
+          totalManpower: manpower,
+          date: sessionData.date
+        },
+        entries: sessionData.entries
+      };
+
+      // 1. Submit to Google Sheets
+      google.script.run.withSuccessHandler(function(response) {
+        if(response.success) {
+          // 2. Generate Report
+          generateAndDownloadReport(payload);
+          document.getElementById('finalize-screen').classList.add('hidden');
+          document.getElementById('success-screen').classList.remove('hidden');
+        } else {
+          alert("Error submitting: " + response.error);
+          btn.disabled = false;
+          btn.innerText = "SUBMIT & GENERATE REPORT";
+        }
+      }).submitJobData(payload);
+    }
+
+    // --- REPORT GENERATION ---
+    function generateAndDownloadReport(data) {
+      // Populate hidden HTML
+      document.getElementById('rpt-date').innerText = "Date: " + data.global.date;
+      document.getElementById('rpt-sup-name').innerText = data.supervisor;
+      document.getElementById('rpt-eng-name').innerText = data.global.amnsEngName;
+      document.getElementById('rpt-total-entries').innerText = data.entries.length;
+      document.getElementById('rpt-manpower').innerText = data.global.totalManpower;
+      
+      document.getElementById('sign-sup').innerText = data.supervisor;
+      document.getElementById('sign-eng').innerText = data.global.amnsEngName;
+
+      const tbody = document.getElementById('rpt-table-body');
+      tbody.innerHTML = '';
+      
+      data.entries.forEach((e, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="border: 1px solid black; padding: 4px;">${index + 1}</td>
+          <td style="border: 1px solid black; padding: 4px;">${e.sheetNo || e.workLocation}</td>
+          <td style="border: 1px solid black; padding: 4px;">${e.jobType}</td>
+          <td style="border: 1px solid black; padding: 4px;">L:${e.l} W:${e.w} H:${e.h} Nos:${e.nos}</td>
+          <td style="border: 1px solid black; padding: 4px;">${e.volume}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      const element = document.getElementById('report-container');
+      element.style.display = 'block'; // Make visible for capture
+
+      // Capture as Image & PDF
+      html2canvas(element, { scale: 2 }).then(canvas => {
+        // Download JPG
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        const link = document.createElement('a');
+        link.download = `Report_${data.global.date}_${data.supervisor}.jpg`;
+        link.href = imgData;
+        link.click();
+
+        // Download PDF
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const imgProps = pdf.getImageProperties(imgData);
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+        
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        pdf.save(`Report_${data.global.date}_${data.supervisor}.pdf`);
+
+        element.style.display = 'none'; // Hide again
+      });
+    }
+
+    function reloadSession() {
+      // Redirect to the Web App URL to fully refresh the session
+      window.top.location.href = APP_URL;
+    }
+
+    function shareWhatsApp() {
+      const text = `*Job Completion Report*\nSupervisor: ${sessionData.supervisor}\nDate: ${sessionData.date}\nEntries: ${sessionData.entries.length}\n*Report file has been downloaded to device.*`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+      
+      // Auto-close session after 2 seconds
+      setTimeout(() => {
+        reloadSession();
+      }, 2000);
+    }
+  </script>
+</body>
+</html>
