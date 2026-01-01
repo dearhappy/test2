@@ -3,315 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interactive Quiz</title>
+    <title>Gurwinder Singh Ka Gyan</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf-plugin-autotable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
     <style>
-        :root {
-            --primary: #6c5ce7;
-            --secondary: #a29bfe;
-            --success: #00b894;
-            --error: #ff7675;
-            --bg: #f0f2f5;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--bg);
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        #app-container {
-            width: 95%;
-            max-width: 500px;
-            background: white;
-            border-radius: 20px;
-            padding: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            position: relative;
-        }
-
+        :root { --primary: #6c5ce7; --success: #00b894; --error: #d63031; --bg: #f8f9fa; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        #app { width: 95%; max-width: 450px; background: white; border-radius: 25px; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
         .hidden { display: none !important; }
-
-        /* AI Host Styling */
-        #ai-host {
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 15px;
-            position: relative;
-        }
-
-        .character-svg { width: 100%; height: 100%; }
-        .eye { fill: #333; transition: 0.2s; }
-        .wink { height: 2px !important; } /* Winking effect */
         
-        .bubble {
-            background: #fff;
-            border: 2px solid var(--primary);
-            border-radius: 15px;
-            padding: 10px;
-            margin-bottom: 20px;
-            font-size: 14px;
-            position: relative;
-        }
+        /* AI Virtual Host */
+        #ai-host { width: 130px; height: 130px; margin: 0 auto; transition: transform 0.3s; }
+        .eye { fill: #333; transition: 0.1s; }
+        .wink { transform: scaleY(0.1); transform-origin: center 40px; }
+        .speech { background: white; border: 2px solid var(--primary); border-radius: 15px; padding: 10px; font-size: 14px; margin-bottom: 15px; font-weight: 500; }
 
         /* UI Elements */
-        input {
-            width: 80%;
-            padding: 12px;
-            margin: 10px 0;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 16px;
-        }
+        input { width: 90%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
+        input:focus { border-color: var(--primary); }
+        .btn-action { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
+        .option { display: block; width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; background: white; text-align: left; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        .correct { background: var(--success) !important; color: white; border-color: var(--success); }
+        .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
 
-        button {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-
-        button:active { transform: scale(0.95); }
-
-        .option-btn {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            background: #f8f9fa;
-            color: #333;
-            border: 1px solid #ddd;
-            text-align: left;
-        }
-
-        .correct { background: var(--success) !important; color: white; }
-        .wrong { background: var(--error) !important; color: white; }
-
-        /* Report Preview (Hidden) */
-        #report-template {
-            width: 800px;
-            padding: 40px;
-            background: white;
-            position: absolute;
-            left: -9999px;
-            top: 0;
-        }
+        /* JPG Export Style (Hidden) */
+        #jpg-template { position: absolute; left: -9999px; width: 400px; padding: 40px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; text-align: center; border-radius: 20px; }
     </style>
 </head>
 <body>
 
-<div id="app-container">
-    <div id="entry-screen">
-        <h2>Welcome to the Quiz!</h2>
-        <p>Enter your details to start</p>
-        <input type="text" id="userName" placeholder="Your Full Name" required>
-        <input type="tel" id="userMobile" placeholder="Mobile Number" required>
-        <br><br>
-        <button onclick="startQuiz()">Start Quiz</button>
+<div id="app">
+    <div id="screen-entry">
+        <h2 style="color: var(--primary)">Gurwinder Singh Ka Gyan</h2>
+        <p>Interactive Quiz Contest</p>
+        <input type="text" id="name" placeholder="Full Name">
+        <input type="tel" id="mobile" placeholder="Mobile Number">
+        <button class="btn-action" onclick="startApp()">Enter Contest</button>
     </div>
 
-    <div id="quiz-screen" class="hidden">
+    <div id="screen-quiz" class="hidden">
         <div id="ai-host">
-            <svg class="character-svg" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="#ffe0bd"/>
-                <circle class="eye left-eye" cx="35" cy="40" r="5" />
-                <circle class="eye right-eye" cx="65" cy="40" r="5" />
-                <path id="mouth" d="M 35 70 Q 50 80 65 70" stroke="#333" stroke-width="3" fill="transparent" />
+            <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" fill="#FFDBAC"/>
+                <circle class="eye left-eye" cx="35" cy="40" r="5"/>
+                <circle class="eye right-eye" cx="65" cy="40" r="5"/>
+                <path id="mouth" d="M 35 70 Q 50 80 65 70" stroke="#333" stroke-width="3" fill="none"/>
+                <path d="M 20 30 Q 50 5 80 30" stroke="#4a2c2a" stroke-width="12" fill="none"/>
             </svg>
         </div>
-        <div class="bubble" id="ai-speech">Hello! I'm your host. Good luck!</div>
-        
-        <h3 id="question-text">Loading question...</h3>
-        <div id="options-container"></div>
-        <p>Question <span id="q-count">1</span>/20</p>
+        <div class="speech" id="ai-msg">Ready to test your knowledge?</div>
+        <h3 id="q-text" style="min-height: 50px;"></h3>
+        <div id="options"></div>
+        <p style="font-size: 0.8em; color: #888;">Step <span id="q-num">1</span> of 20</p>
     </div>
 
-    <div id="result-screen" class="hidden">
-        <h2>Quiz Complete!</h2>
-        <p id="final-score-text"></p>
-        <p>Your report is being generated and downloaded...</p>
-        <button onclick="location.reload()">Restart Quiz</button>
+    <div id="screen-result" class="hidden">
+        <h2 style="color: var(--success)">Quiz Completed!</h2>
+        <div id="result-info" style="margin: 20px 0; font-size: 1.2em;"></div>
+        <p style="color: #666; font-size: 0.9em;">Generating your JPG and PDF reports...</p>
+        <button class="btn-action" onclick="location.reload()" style="background: #555;">Restart</button>
     </div>
 </div>
 
-<div id="report-template">
-    <h1 style="color:#6c5ce7">Quiz Performance Report</h1>
-    <hr>
-    <div id="report-meta" style="font-size: 20px; margin-bottom: 20px;"></div>
-    <table id="report-table" style="width:100%; border-collapse: collapse; text-align: left;">
-        <thead>
-            <tr style="background: #eee;">
-                <th style="padding:10px; border:1px solid #ddd;">Question</th>
-                <th style="padding:10px; border:1px solid #ddd;">Your Answer</th>
-                <th style="padding:10px; border:1px solid #ddd;">Correct Answer</th>
-            </tr>
-        </thead>
-        <tbody id="report-body"></tbody>
-    </table>
+<div id="jpg-template">
+    <h1 style="margin: 0;">CERTIFICATE</h1>
+    <p>of Participation</p>
+    <div style="margin: 30px 0;">
+        <h2 id="jpg-name" style="text-decoration: underline;"></h2>
+        <p id="jpg-mob"></p>
+    </div>
+    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px;">
+        <span style="font-size: 1.5em;">Score: <span id="jpg-score"></span>/20</span>
+    </div>
+    <p style="margin-top: 40px; font-size: 0.8em;">Gurwinder Singh Ka Gyan Contest</p>
 </div>
+
+<audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
 
 <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vSxcEdtVMVmRWFHzJAE5ZbOnBENM8kuKHwI5SbUBAnkMXBNlHpA-4RqAEhPUCaEaPzL0D8wsEBdAOds/pub?gid=0&single=true&output=csv';
+    const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxcEdtVMVmRWFHzJAE5ZbOnBENM8kuKHwI5SbUBAnkMXBNlHpA-4RqAEhPUCaEaPzL0D8wsEBdAOds/pub?gid=0&single=true&output=csv";
     
-    let questions = [];
-    let currentQ = 0;
-    let score = 0;
-    let userData = { name: '', mobile: '' };
-    let userLog = []; // Stores answers for report
+    let quizData = [], current = 0, score = 0;
+    let user = { name: '', mobile: '' }, logs = [];
 
-    // Fetch and Parse CSV
-    async function loadQuestions() {
+    // 1. Initial Logic
+    async function startApp() {
+        user.name = document.getElementById('name').value;
+        user.mobile = document.getElementById('mobile').value;
+        if(!user.name || !user.mobile) return alert("Fill details!");
+
+        document.getElementById('bg-music').play().catch(() => {}); // Play music
+
         try {
-            const response = await fetch(CSV_URL);
-            const data = await response.text();
-            const rows = data.split('\n').slice(1); // Skip header
+            const res = await fetch(CSV_URL);
+            const text = await res.text();
+            const rows = text.split('\n').slice(1);
             
-            questions = rows.map(row => {
-                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); // Regex to handle commas inside quotes
+            quizData = rows.map(r => {
+                const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
                 return {
-                    text: cols[1]?.replace(/"/g, ''),
-                    options: [cols[2], cols[3], cols[4], cols[5]],
-                    correct: cols[6]?.trim().replace(/"/g, '')
+                    q: c[1]?.replace(/"/g, ''),
+                    o: [c[2], c[3], c[4], c[5]],
+                    a: c[6]?.trim().replace(/"/g, '')
                 };
-            }).filter(q => q.text); // Remove empty rows
+            }).filter(x => x.q).sort(() => Math.random() - 0.5).slice(0, 20);
 
-            questions = questions.sort(() => Math.random() - 0.5).slice(0, 20); // Shuffle and take 20
-        } catch (e) {
-            console.error("Error loading questions:", e);
-            alert("Failed to load quiz data. Please check your internet connection.");
-        }
+            document.getElementById('screen-entry').classList.add('hidden');
+            document.getElementById('screen-quiz').classList.remove('hidden');
+            loadQuestion();
+        } catch(e) { alert("Error loading quiz data."); }
     }
 
-    function startQuiz() {
-        const name = document.getElementById('userName').value;
-        const mobile = document.getElementById('userMobile').value;
-
-        if(!name || !mobile) return alert("Please fill in all details");
-
-        userData = { name, mobile };
-        document.getElementById('entry-screen').classList.add('hidden');
-        document.getElementById('quiz-screen').classList.remove('hidden');
-        showQuestion();
-    }
-
-    function showQuestion() {
-        const q = questions[currentQ];
-        document.getElementById('q-count').innerText = currentQ + 1;
-        document.getElementById('question-text').innerText = q.text;
-        document.getElementById('ai-speech').innerText = "Pick the right answer!";
+    // 2. Quiz Logic
+    function loadQuestion() {
+        const item = quizData[current];
+        document.getElementById('q-text').innerText = item.q;
+        document.getElementById('q-num').innerText = current + 1;
+        const box = document.getElementById('options');
+        box.innerHTML = '';
         
-        const container = document.getElementById('options-container');
-        container.innerHTML = '';
-
-        q.options.forEach(opt => {
-            const btn = document.createElement('button');
-            btn.className = 'option-btn';
-            btn.innerText = opt;
-            btn.onclick = () => checkAnswer(opt, btn);
-            container.appendChild(btn);
+        item.o.forEach(opt => {
+            const b = document.createElement('button');
+            b.className = 'option';
+            b.innerText = opt;
+            b.onclick = () => handleChoice(opt, b);
+            box.appendChild(b);
         });
     }
 
-    function checkAnswer(selected, btn) {
-        const correct = questions[currentQ].correct;
-        const allBtns = document.querySelectorAll('.option-btn');
-        allBtns.forEach(b => b.disabled = true);
+    function handleChoice(sel, btn) {
+        const correct = quizData[current].a;
+        const btns = document.querySelectorAll('.option');
+        btns.forEach(b => b.disabled = true);
+        
+        const isCorrect = (sel === correct);
+        if(isCorrect) score++;
 
-        userLog.push({
-            q: questions[currentQ].text,
-            user: selected,
-            correct: correct
-        });
+        logs.push({ q: quizData[current].q, user: sel, correct: correct, result: isCorrect ? 'Correct' : 'Incorrect' });
 
-        if(selected.trim() === correct.trim()) {
-            score++;
-            btn.classList.add('correct');
-            triggerAIReaction(true);
-        } else {
-            btn.classList.add('wrong');
-            // Highlight the correct one
-            allBtns.forEach(b => {
-                if(b.innerText.trim() === correct.trim()) b.classList.add('correct');
-            });
-            triggerAIReaction(false);
-        }
-
-        setTimeout(() => {
-            currentQ++;
-            if(currentQ < 20) {
-                showQuestion();
-            } else {
-                finishQuiz();
-            }
-        }, 2000);
-    }
-
-    function triggerAIReaction(isCorrect) {
-        const leftEye = document.querySelector('.left-eye');
-        const speech = document.getElementById('ai-speech');
+        // AI Reaction
+        const eye = document.querySelector('.right-eye');
         const mouth = document.getElementById('mouth');
+        const msg = document.getElementById('ai-msg');
 
         if(isCorrect) {
-            leftEye.classList.add('wink');
-            speech.innerText = "Awesome! That's correct! ✨";
-            mouth.setAttribute('d', 'M 30 70 Q 50 90 70 70'); // Bigger smile
+            btn.classList.add('correct');
+            eye.classList.add('wink');
+            msg.innerText = "Wow! You are brilliant! ✨";
+            mouth.setAttribute('d', 'M 30 70 Q 50 90 70 70');
         } else {
-            speech.innerText = `Not quite! The correct answer was: ${questions[currentQ].correct}`;
-            mouth.setAttribute('d', 'M 35 75 Q 50 75 65 75'); // Flat smile
+            btn.classList.add('wrong');
+            msg.innerText = `Keep trying! The answer was ${correct}`;
+            mouth.setAttribute('d', 'M 35 75 Q 50 75 65 75');
+            btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
         }
 
         setTimeout(() => {
-            leftEye.classList.remove('wink');
+            eye.classList.remove('wink');
             mouth.setAttribute('d', 'M 35 70 Q 50 80 65 70');
-        }, 1500);
+            current++;
+            if(current < quizData.length) loadQuestion();
+            else finishContest();
+        }, 2200);
     }
 
-    async function finishQuiz() {
-        document.getElementById('quiz-screen').classList.add('hidden');
-        document.getElementById('result-screen').classList.remove('hidden');
-        document.getElementById('final-score-text').innerText = `You scored ${score} out of 20!`;
+    // 3. Finalization & Report Generation
+    async function finishContest() {
+        document.getElementById('screen-quiz').classList.add('hidden');
+        document.getElementById('screen-result').classList.remove('hidden');
+        document.getElementById('result-info').innerHTML = `<b>${user.name}</b><br>Your Score: ${score}/20`;
 
-        generateReport();
-    }
+        // -- GENERATE JPG --
+        document.getElementById('jpg-name').innerText = user.name;
+        document.getElementById('jpg-mob').innerText = user.mobile;
+        document.getElementById('jpg-score').innerText = score;
+        
+        const jpgArea = document.getElementById('jpg-template');
+        const canvas = await html2canvas(jpgArea);
+        const jpgLink = document.createElement('a');
+        jpgLink.download = `${user.name}_Result.jpg`;
+        jpgLink.href = canvas.toDataURL("image/jpeg");
+        jpgLink.click();
 
-    async function generateReport() {
-        // Populate Hidden Report
-        document.getElementById('report-meta').innerHTML = `
-            <strong>Name:</strong> ${userData.name} | <strong>Mobile:</strong> ${userData.mobile}<br>
-            <strong>Total Score:</strong> ${score} / 20
-        `;
+        // -- GENERATE PDF --
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(20);
+        doc.setTextColor(108, 92, 231);
+        doc.text("Gurwinder Singh Ka Gyan", 105, 15, { align: "center" });
+        
+        doc.setFontSize(10);
+        doc.setTextColor(0, 0, 0);
+        doc.text(`Participant: ${user.name}`, 14, 25);
+        doc.text(`Mobile: ${user.mobile}`, 14, 30);
+        doc.text(`Final Score: ${score}/20`, 14, 35);
+        doc.text(`Date: ${new Date().toLocaleString()}`, 14, 40);
 
-        const body = document.getElementById('report-body');
-        userLog.forEach(item => {
-            const row = `<tr>
-                <td style="padding:8px; border:1px solid #ddd;">${item.q}</td>
-                <td style="padding:8px; border:1px solid #ddd; color:${item.user === item.correct ? 'green' : 'red'}">${item.user}</td>
-                <td style="padding:8px; border:1px solid #ddd; color:green">${item.correct}</td>
-            </tr>`;
-            body.innerHTML += row;
+        const tableRows = logs.map((l, i) => [i + 1, l.q, l.user, l.correct, l.result]);
+        
+        doc.autoTable({
+            startY: 45,
+            head: [['#', 'Question', 'Your Choice', 'Correct Answer', 'Status']],
+            body: tableRows,
+            theme: 'grid',
+            headStyles: { fillColor: [108, 92, 231] },
+            columnStyles: { 1: { cellWidth: 80 } }
         });
 
-        // Convert to Image
-        const reportDiv = document.getElementById('report-template');
-        const canvas = await html2canvas(reportDiv);
-        const link = document.createElement('a');
-        link.download = `${userData.name}_Quiz_Report.jpg`;
-        link.href = canvas.toDataURL('image/jpeg', 0.9);
-        link.click();
+        doc.save("Gurwinder Singh Ka Gyan.pdf");
     }
-
-    // Initialize
-    loadQuestions();
 </script>
-
 </body>
 </html>
