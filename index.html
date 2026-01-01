@@ -9,141 +9,127 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <style>
-        :root { --primary: #6c5ce7; --success: #00b894; --error: #d63031; --bg: #f8f9fa; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        #app { width: 95%; max-width: 450px; background: white; border-radius: 25px; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); text-align: center; }
+        :root { --primary: #6c5ce7; --success: #00b894; --error: #d63031; --dark: #2d3436; }
+        body { font-family: 'Poppins', sans-serif; background: #f0f3f7; margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        #app { width: 95%; max-width: 450px; background: white; border-radius: 30px; padding: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; position: relative; }
         .hidden { display: none !important; }
-        
-        /* AI Virtual Host */
-        #ai-host { width: 130px; height: 130px; margin: 0 auto; transition: transform 0.3s; }
-        .eye { fill: #333; transition: 0.1s; }
-        .wink { transform: scaleY(0.1); transform-origin: center 40px; }
-        .speech { background: white; border: 2px solid var(--primary); border-radius: 15px; padding: 10px; font-size: 14px; margin-bottom: 15px; font-weight: 500; }
 
-        /* UI Elements */
-        input { width: 90%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 12px; font-size: 16px; outline: none; }
-        input:focus { border-color: var(--primary); }
-        .btn-action { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 12px; font-weight: bold; cursor: pointer; width: 100%; transition: 0.3s; }
-        .option { display: block; width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #eee; border-radius: 12px; background: white; text-align: left; cursor: pointer; font-size: 15px; transition: 0.2s; }
+        /* Cartoon Girl Illustration */
+        #ai-host { width: 150px; height: 150px; margin: 0 auto; position: relative; }
+        .eye { fill: #333; transition: 0.1s; }
+        .wink { transform: scaleY(0.1); transform-origin: center 45%; }
+        
+        .speech-bubble { background: #f8f9fa; border-radius: 20px; padding: 15px; font-size: 14px; margin: 15px 0; border: 1px solid #eee; position: relative; font-weight: 500; }
+
+        /* UI */
+        input { width: 100%; box-sizing: border-box; padding: 15px; margin: 10px 0; border: 2px solid #f1f1f1; border-radius: 15px; font-size: 16px; outline: none; }
+        .btn-main { background: var(--primary); color: white; border: none; padding: 16px; border-radius: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
+        .option { display: block; width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #e0e0e0; border-radius: 12px; background: white; text-align: left; cursor: pointer; transition: 0.3s; }
         .correct { background: var(--success) !important; color: white; border-color: var(--success); }
         .wrong { background: var(--error) !important; color: white; border-color: var(--error); }
 
-        /* JPG Export Style (Hidden) */
-        #jpg-template { position: absolute; left: -9999px; width: 400px; padding: 40px; background: linear-gradient(135deg, #6c5ce7, #a29bfe); color: white; text-align: center; border-radius: 20px; }
+        /* JPG Result Structure */
+        #jpg-render { position: absolute; left: -9999px; width: 500px; height: 500px; background: white; padding: 40px; box-sizing: border-box; text-align: center; border: 15px solid var(--primary); }
+        .score-circle { width: 120px; height: 120px; border-radius: 50%; border: 5px solid var(--primary); line-height: 120px; font-size: 40px; margin: 20px auto; color: var(--primary); font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="app">
     <div id="screen-entry">
-        <h2 style="color: var(--primary)">Gurwinder Singh Ka Gyan</h2>
-        <p>Interactive Quiz Contest</p>
-        <input type="text" id="name" placeholder="Full Name">
+        <h1 style="color: var(--primary); margin-bottom: 5px;">Gurwinder Singh</h1>
+        <p style="margin-top: 0; color: #666;">Ka Gyan Quiz Contest</p>
+        <input type="text" id="name" placeholder="Enter Full Name">
         <input type="tel" id="mobile" placeholder="Mobile Number">
-        <button class="btn-action" onclick="startApp()">Enter Contest</button>
+        <button class="btn-main" onclick="startQuiz()">Start Challenge</button>
     </div>
 
     <div id="screen-quiz" class="hidden">
         <div id="ai-host">
-            <svg viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="#FFDBAC"/>
-                <circle class="eye left-eye" cx="35" cy="40" r="5"/>
-                <circle class="eye right-eye" cx="65" cy="40" r="5"/>
-                <path id="mouth" d="M 35 70 Q 50 80 65 70" stroke="#333" stroke-width="3" fill="none"/>
-                <path d="M 20 30 Q 50 5 80 30" stroke="#4a2c2a" stroke-width="12" fill="none"/>
+            <svg viewBox="0 0 200 200">
+                <path d="M40,100 Q40,40 100,40 Q160,40 160,100" fill="#4a2c2a" />
+                <circle cx="100" cy="100" r="55" fill="#ffd1dc" />
+                <path d="M60,80 Q100,60 140,80" fill="#4a2c2a" /> <circle class="eye" cx="80" cy="100" r="4" />
+                <circle class="eye right-eye" cx="120" cy="100" r="4" />
+                <path id="mouth" d="M85,125 Q100,135 115,125" stroke="#333" stroke-width="2" fill="none" />
+                <path d="M60,150 Q100,140 140,150 L150,190 L50,190 Z" fill="#6c5ce7" />
             </svg>
         </div>
-        <div class="speech" id="ai-msg">Ready to test your knowledge?</div>
-        <h3 id="q-text" style="min-height: 50px;"></h3>
+        <div class="speech-bubble" id="ai-msg">Hi! I'm your host. Let's see how much you know!</div>
+        <h3 id="q-text" style="height: 60px; font-size: 1.1em;"></h3>
         <div id="options"></div>
-        <p style="font-size: 0.8em; color: #888;">Step <span id="q-num">1</span> of 20</p>
+        <p style="font-size: 12px; color: #999;">Question <span id="q-count">1</span> of 20</p>
     </div>
 
     <div id="screen-result" class="hidden">
         <h2 style="color: var(--success)">Quiz Completed!</h2>
-        <div id="result-info" style="margin: 20px 0; font-size: 1.2em;"></div>
-        <p style="color: #666; font-size: 0.9em;">Generating your JPG and PDF reports...</p>
-        <button class="btn-action" onclick="location.reload()" style="background: #555;">Restart</button>
+        <div id="status-msg">Your reports are downloading automatically...</div>
+        <button class="btn-main" style="background: #333;" onclick="location.reload()">Play Again</button>
     </div>
 </div>
 
-<div id="jpg-template">
-    <h1 style="margin: 0;">CERTIFICATE</h1>
-    <p>of Participation</p>
-    <div style="margin: 30px 0;">
-        <h2 id="jpg-name" style="text-decoration: underline;"></h2>
-        <p id="jpg-mob"></p>
-    </div>
-    <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px;">
-        <span style="font-size: 1.5em;">Score: <span id="jpg-score"></span>/20</span>
-    </div>
-    <p style="margin-top: 40px; font-size: 0.8em;">Gurwinder Singh Ka Gyan Contest</p>
+<div id="jpg-render">
+    <h3 style="color: #666; margin-bottom: 0;">OFFICIAL RESULT</h3>
+    <h1 style="color: var(--primary); margin-top: 5px;">Gurwinder Singh Ka Gyan</h1>
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+    <h2 id="r-name">Participant Name</h2>
+    <p id="r-mob">Mobile: 0000000000</p>
+    <div class="score-circle" id="r-score">18/20</div>
+    <p style="color: #888;">Thank you for participating!</p>
 </div>
 
-<audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"></audio>
+<audio id="bg-music" loop src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"></audio>
 
 <script>
     const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSxcEdtVMVmRWFHzJAE5ZbOnBENM8kuKHwI5SbUBAnkMXBNlHpA-4RqAEhPUCaEaPzL0D8wsEBdAOds/pub?gid=0&single=true&output=csv";
-    
-    let quizData = [], current = 0, score = 0;
-    let user = { name: '', mobile: '' }, logs = [];
+    let questions = [], current = 0, score = 0, logs = [];
+    let userData = { name: '', mobile: '' };
 
-    // 1. Initial Logic
-    async function startApp() {
-        user.name = document.getElementById('name').value;
-        user.mobile = document.getElementById('mobile').value;
-        if(!user.name || !user.mobile) return alert("Fill details!");
+    async function startQuiz() {
+        userData.name = document.getElementById('name').value;
+        userData.mobile = document.getElementById('mobile').value;
+        if(!userData.name || !userData.mobile) return alert("Please fill details");
 
-        document.getElementById('bg-music').play().catch(() => {}); // Play music
+        document.getElementById('bg-music').play().catch(()=>{});
 
-        try {
-            const res = await fetch(CSV_URL);
-            const text = await res.text();
-            const rows = text.split('\n').slice(1);
-            
-            quizData = rows.map(r => {
-                const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
-                return {
-                    q: c[1]?.replace(/"/g, ''),
-                    o: [c[2], c[3], c[4], c[5]],
-                    a: c[6]?.trim().replace(/"/g, '')
-                };
-            }).filter(x => x.q).sort(() => Math.random() - 0.5).slice(0, 20);
+        const res = await fetch(CSV_URL);
+        const data = await res.text();
+        const rows = data.split('\n').slice(1);
+        questions = rows.map(r => {
+            const c = r.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+            return { q: c[1]?.replace(/"/g,''), o: [c[2],c[3],c[4],c[5]], a: c[6]?.trim().replace(/"/g,'') };
+        }).filter(q => q.q).sort(() => 0.5 - Math.random()).slice(0, 20);
 
-            document.getElementById('screen-entry').classList.add('hidden');
-            document.getElementById('screen-quiz').classList.remove('hidden');
-            loadQuestion();
-        } catch(e) { alert("Error loading quiz data."); }
+        document.getElementById('screen-entry').classList.add('hidden');
+        document.getElementById('screen-quiz').classList.remove('hidden');
+        showQuestion();
     }
 
-    // 2. Quiz Logic
-    function loadQuestion() {
-        const item = quizData[current];
-        document.getElementById('q-text').innerText = item.q;
-        document.getElementById('q-num').innerText = current + 1;
+    function showQuestion() {
+        const q = questions[current];
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-count').innerText = current + 1;
         const box = document.getElementById('options');
         box.innerHTML = '';
-        
-        item.o.forEach(opt => {
+        q.o.forEach(opt => {
             const b = document.createElement('button');
             b.className = 'option';
             b.innerText = opt;
-            b.onclick = () => handleChoice(opt, b);
+            b.onclick = () => check(opt, b);
             box.appendChild(b);
         });
     }
 
-    function handleChoice(sel, btn) {
-        const correct = quizData[current].a;
+    function check(choice, btn) {
+        const correct = questions[current].a;
+        const isCorrect = (choice === correct);
         const btns = document.querySelectorAll('.option');
         btns.forEach(b => b.disabled = true);
-        
-        const isCorrect = (sel === correct);
+
+        logs.push({ q: questions[current].q, u: choice, c: correct, s: isCorrect ? 'PASS' : 'FAIL' });
         if(isCorrect) score++;
 
-        logs.push({ q: quizData[current].q, user: sel, correct: correct, result: isCorrect ? 'Correct' : 'Incorrect' });
-
-        // AI Reaction
+        // Animation
         const eye = document.querySelector('.right-eye');
         const mouth = document.getElementById('mouth');
         const msg = document.getElementById('ai-msg');
@@ -151,64 +137,54 @@
         if(isCorrect) {
             btn.classList.add('correct');
             eye.classList.add('wink');
-            msg.innerText = "Wow! You are brilliant! ✨";
-            mouth.setAttribute('d', 'M 30 70 Q 50 90 70 70');
+            mouth.setAttribute('d', 'M80,130 Q100,150 120,130');
+            msg.innerText = "Fantastic! That's the correct answer! ✨";
         } else {
             btn.classList.add('wrong');
-            msg.innerText = `Keep trying! The answer was ${correct}`;
-            mouth.setAttribute('d', 'M 35 75 Q 50 75 65 75');
+            mouth.setAttribute('d', 'M90,130 Q100,125 110,130');
+            msg.innerText = `Oh! The correct answer was: ${correct}`;
             btns.forEach(b => { if(b.innerText === correct) b.classList.add('correct'); });
         }
 
         setTimeout(() => {
             eye.classList.remove('wink');
-            mouth.setAttribute('d', 'M 35 70 Q 50 80 65 70');
+            mouth.setAttribute('d', 'M85,125 Q100,135 115,125');
             current++;
-            if(current < quizData.length) loadQuestion();
-            else finishContest();
-        }, 2200);
+            if(current < 20) showQuestion();
+            else generateReports();
+        }, 2500);
     }
 
-    // 3. Finalization & Report Generation
-    async function finishContest() {
+    async function generateReports() {
         document.getElementById('screen-quiz').classList.add('hidden');
         document.getElementById('screen-result').classList.remove('hidden');
-        document.getElementById('result-info').innerHTML = `<b>${user.name}</b><br>Your Score: ${score}/20`;
 
-        // -- GENERATE JPG --
-        document.getElementById('jpg-name').innerText = user.name;
-        document.getElementById('jpg-mob').innerText = user.mobile;
-        document.getElementById('jpg-score').innerText = score;
+        // 1. Download JPG Result Card
+        document.getElementById('r-name').innerText = userData.name;
+        document.getElementById('r-mob').innerText = "Mobile: " + userData.mobile;
+        document.getElementById('r-score').innerText = score + "/20";
         
-        const jpgArea = document.getElementById('jpg-template');
-        const canvas = await html2canvas(jpgArea);
+        const canvas = await html2canvas(document.getElementById('jpg-render'));
         const jpgLink = document.createElement('a');
-        jpgLink.download = `${user.name}_Result.jpg`;
+        jpgLink.download = `${userData.name}_Result.jpg`;
         jpgLink.href = canvas.toDataURL("image/jpeg");
         jpgLink.click();
 
-        // -- GENERATE PDF --
+        // 2. Download PDF Full Report
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        
         doc.setFontSize(20);
-        doc.setTextColor(108, 92, 231);
-        doc.text("Gurwinder Singh Ka Gyan", 105, 15, { align: "center" });
-        
-        doc.setFontSize(10);
-        doc.setTextColor(0, 0, 0);
-        doc.text(`Participant: ${user.name}`, 14, 25);
-        doc.text(`Mobile: ${user.mobile}`, 14, 30);
-        doc.text(`Final Score: ${score}/20`, 14, 35);
-        doc.text(`Date: ${new Date().toLocaleString()}`, 14, 40);
+        doc.text("Gurwinder Singh Ka Gyan - Complete Report", 105, 15, { align: "center" });
+        doc.setFontSize(12);
+        doc.text(`Participant: ${userData.name}`, 14, 25);
+        doc.text(`Mobile: ${userData.mobile}`, 14, 30);
+        doc.text(`Total Score: ${score}/20`, 14, 35);
 
-        const tableRows = logs.map((l, i) => [i + 1, l.q, l.user, l.correct, l.result]);
-        
+        const tableData = logs.map((l, i) => [i + 1, l.q, l.u, l.c, l.s]);
         doc.autoTable({
-            startY: 45,
-            head: [['#', 'Question', 'Your Choice', 'Correct Answer', 'Status']],
-            body: tableRows,
-            theme: 'grid',
+            startY: 40,
+            head: [['#', 'Question', 'Your Answer', 'Correct Answer', 'Result']],
+            body: tableData,
             headStyles: { fillColor: [108, 92, 231] },
             columnStyles: { 1: { cellWidth: 80 } }
         });
