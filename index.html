@@ -15,9 +15,8 @@
     .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
     @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
-    /* REPORT STYLING - Optimized for all 17 columns */
     #report-container {
-      width: 297mm; /* Landscape Width */
+      width: 297mm;
       background: white;
       padding: 10mm;
       display: none; 
@@ -99,13 +98,18 @@
           </div>
           <div class="text-right text-xs font-bold text-blue-700">Volume: <span id="display-vol">0.00</span> m³</div>
 
-          <div class="flex space-x-2">
+          <div>
+            <label class="text-[10px] font-bold">SCAFFOLD PHOTO</label>
+            <input type="file" id="f-photo" accept="image/*" class="w-full text-xs border p-1 rounded bg-white">
+          </div>
+
+          <div class="flex space-x-2 pt-2">
              <button type="button" onclick="addEntry()" class="flex-1 bg-green-600 text-white py-3 rounded font-bold">ADD ENTRY</button>
              <button type="button" onclick="goToFinalize()" class="flex-1 bg-blue-700 text-white py-3 rounded font-bold">FINISH</button>
           </div>
         </form>
       </div>
-      <div id="entry-list" class="space-y-2"></div>
+      <div id="entry-list" class="space-y-2 pb-10"></div>
     </div>
 
     <div id="finalize-screen" class="hidden card p-6">
@@ -234,10 +238,15 @@
       return v;
     }
 
+    function toB64(file) { return new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result); }); }
+
     async function addEntry() {
       const type = document.getElementById('f-jobtype').value;
       if(!type) return alert("Select Job Type");
       
+      const photoFile = document.getElementById('f-photo').files[0];
+      const photoData = photoFile ? await toB64(photoFile) : null;
+
       const entry = {
         sheetNo: document.getElementById('f-sheet').value || "-",
         date: document.getElementById('f-date').value,
@@ -252,13 +261,25 @@
         w: document.getElementById('f-w').value || 0,
         h: document.getElementById('f-h').value || 0,
         nos: document.getElementById('f-nos').value || 0,
-        vol: calcVol()
+        vol: calcVol(),
+        image: photoData // PHOTO DATA SAVED IN SESSION
       };
       
       sessionData.entries.push(entry);
       document.getElementById('entry-count').innerText = "Entries: " + sessionData.entries.length;
+      renderMiniList();
       document.getElementById('job-form').reset();
       document.getElementById('f-date').value = sessionData.date;
+    }
+
+    function renderMiniList() {
+      const list = document.getElementById('entry-list');
+      list.innerHTML = sessionData.entries.map((e, i) => `
+        <div class="bg-white p-2 border rounded flex justify-between text-xs">
+          <span>${e.jobType}: ${e.vol.toFixed(2)}m³</span>
+          <button type="button" onclick="sessionData.entries.splice(${i},1);renderMiniList();" class="text-red-500">Remove</button>
+        </div>
+      `).join('');
     }
 
     function goToFinalize() {
@@ -275,7 +296,6 @@
       const btn = document.getElementById('btn-submit-all');
       btn.innerText = "Submitting..."; btn.disabled = true;
 
-      // Stats
       const ere = sessionData.entries.filter(e => e.jobType === "Erection").reduce((a, b) => a + b.vol, 0);
       const dis = sessionData.entries.filter(e => e.jobType === "Dismantling").reduce((a, b) => a + b.vol, 0);
       const mh = mp * 12;
@@ -293,6 +313,9 @@
         await drawReport();
         document.getElementById('finalize-screen').classList.add('hidden');
         document.getElementById('success-screen').classList.remove('hidden');
+      } else {
+        alert("Submission Failed");
+        btn.innerText = "SUBMIT & DOWNLOAD REPORT"; btn.disabled = false;
       }
     }
 
