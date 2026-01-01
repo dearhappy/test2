@@ -82,8 +82,15 @@
             <input type="text" id="f-location" class="border rounded p-2 text-sm" placeholder="Work Location">
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <select id="f-scaffold" class="border rounded p-2 text-sm"><option value="">Scaffold Type</option></select>
-            <select id="f-elevation" class="border rounded p-2 text-sm"><option value="">Elevation</option></select>
+            <select id="f-scaffold" class="border rounded p-2 text-sm" onchange="updateElevationDropdown()">
+                <option value="">Scaffold Type</option>
+                <option value="Normal">Normal</option>
+                <option value="Hanging">Hanging</option>
+                <option value="Designed">Designed</option>
+            </select>
+            <select id="f-elevation" class="border rounded p-2 text-sm">
+                <option value="">Elevation</option>
+            </select>
           </div>
           <div class="bg-gray-100 p-2 rounded grid grid-cols-4 gap-1">
             <input type="number" id="f-l" placeholder="L" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
@@ -144,6 +151,26 @@
     const APP_URL = "https://script.google.com/macros/s/AKfycbxkzRv-FufgO4unbMAMmKrKQ36tdLttDa5UblizEq7p0uFs1fcUl3SKeVmeuPVdo7PfOg/exec";
     let sessionData = { supervisor: '', entries: [], date: '', stats: {} };
 
+    // NEW FUNCTION: DYNAMIC ELEVATION LOGIC
+    function updateElevationDropdown() {
+        const type = document.getElementById('f-scaffold').value;
+        const elevDrop = document.getElementById('f-elevation');
+        elevDrop.innerHTML = '<option value="">Elevation</option>';
+        
+        let options = [];
+        if (type === "Normal") {
+            options = ["0TO10", "10TO20", "20TO30", "30TO40", "40TO50"];
+        } else if (type === "Hanging") {
+            options = ["0TO10", "10TO20", "ABOVE20"];
+        } else if (type === "Designed") {
+            options = ["0TO45"];
+        }
+
+        options.forEach(opt => {
+            elevDrop.innerHTML += `<option value="${opt}">${opt}</option>`;
+        });
+    }
+
     async function apiCall(action, payload = {}) {
       const res = await fetch(APP_URL, { method: 'POST', body: JSON.stringify({ action, ...payload }) });
       return await res.json();
@@ -158,8 +185,7 @@
         fillDrop('login-username', data.users);
         fillDrop('f-area', data.areas);
         fillDrop('f-dept', data.departments);
-        fillDrop('f-scaffold', data.scaffoldingTypes);
-        fillDrop('f-elevation', data.elevations);
+        // Scaffolding type logic now hardcoded in HTML as requested
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('login-screen').classList.remove('hidden');
       }
