@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Daily Certification Portal</title>
+  <title>Certification Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -15,232 +15,233 @@
     }
     .report-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
     .report-table th, .report-table td { border: 1px solid #000; padding: 6px; text-align: center; font-size: 11px; }
-    .header-box { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-    .summary-box { display: flex; justify-content: center; gap: 50px; font-weight: bold; border: 2px solid #000; padding: 12px; background: #f0f0f0; margin-top: 10px; }
+    .summary-box { display: flex; justify-content: center; gap: 40px; font-weight: bold; border: 2px solid #000; padding: 12px; background: #f9f9f9; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
   <div id="login-view" class="flex items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-xl shadow-2xl w-96 border-t-4 border-blue-600">
-      <h2 class="text-2xl font-bold text-center mb-6">SCAFFOLDING PORTAL</h2>
-      <select id="login-user" class="w-full p-3 border rounded mb-4"></select>
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-full max-w-sm border-t-4 border-blue-600">
+      <h2 class="text-2xl font-black text-center mb-6">PORTAL LOGIN</h2>
+      <select id="login-user" class="w-full p-3 border rounded mb-4 font-bold text-gray-700"></select>
       <input type="password" id="login-pass" placeholder="Passcode" class="w-full p-3 border rounded mb-4">
-      <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">LOGIN</button>
+      <button onclick="handleLogin()" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">LOGIN</button>
     </div>
   </div>
 
-  <div id="app-view" class="hidden p-4 max-w-4xl mx-auto pb-24">
-    <div class="bg-white rounded-xl shadow p-6 mb-6">
-      <div class="flex justify-between items-center mb-6 border-b pb-2">
-        <h1 class="text-xl font-bold text-blue-800">DAILY CERTIFICATION</h1>
-        <span id="user-tag" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-bold"></span>
+  <div id="app-view" class="hidden p-4 max-w-4xl mx-auto pb-20">
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+      <div class="flex justify-between items-center border-b pb-4 mb-6">
+        <h1 class="text-xl font-extrabold text-blue-800">DAILY CERTIFICATION</h1>
+        <span id="user-display" class="bg-blue-100 text-blue-700 px-4 py-1 rounded-full text-xs font-black uppercase"></span>
       </div>
 
-      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
-        <label class="block text-xs font-bold text-blue-600 mb-2">ADD WORKERS & SUPERVISORS</label>
-        <div class="flex gap-2">
-          <select id="mp-select" class="flex-1 p-2 border rounded"></select>
-          <button onclick="addWorker()" class="bg-blue-600 text-white px-4 rounded font-bold">+</button>
+      <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 mb-6">
+        <label class="block text-xs font-black text-gray-500 mb-2 uppercase">1. Assign Workers/Supervisors</label>
+        <div class="flex gap-2 mb-4">
+          <select id="worker-select" class="flex-1 p-2 border rounded-lg text-sm"></select>
+          <button onclick="addWorker()" class="bg-blue-600 text-white px-6 rounded-lg font-black text-xl">+</button>
         </div>
-        <div id="mp-list" class="mt-3 flex flex-wrap gap-2"></div>
+        <div id="worker-tags" class="flex flex-wrap gap-2"></div>
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <input type="date" id="job-date" class="p-2 border rounded">
-        <select id="job-area" class="p-2 border rounded"></select>
+      <div class="grid grid-cols-2 gap-4 mb-4">
+        <div><label class="text-[10px] font-bold">DATE</label><input type="date" id="job-date" class="w-full p-2 border rounded"></div>
+        <div><label class="text-[10px] font-bold">AREA</label><select id="job-area" class="w-full p-2 border rounded"></select></div>
         <select id="job-type" class="p-2 border rounded">
-          <option>Erection</option><option>Dismantling</option><option>Modification</option>
+          <option>Erection</option><option>Dismantling</option><option>Modification</option><option>Shifting</option>
         </select>
-        <input type="text" id="job-loc" placeholder="Equipment/Location" class="p-2 border rounded">
-        <input type="text" id="job-eng" placeholder="AMNS Engineer Name" class="p-2 border rounded uppercase">
-        <div class="flex gap-2">
-          <input type="time" id="t-start" class="w-1/2 p-2 border rounded">
-          <input type="time" id="t-end" class="w-1/2 p-2 border rounded">
-        </div>
+        <input type="text" id="job-loc" placeholder="Work Location / Equipment" class="p-2 border rounded">
+        <select id="job-scaff" class="p-2 border rounded">
+          <option>Normal</option><option>Suspended</option><option>Designed</option>
+        </select>
+        <input type="text" id="job-elev" placeholder="Elevation (0-10m)" class="p-2 border rounded">
       </div>
 
-      <div class="grid grid-cols-4 gap-2 mt-4 bg-gray-50 p-3 rounded border">
-        <input type="number" id="dim-l" placeholder="L" class="p-2 border rounded">
-        <input type="number" id="dim-w" placeholder="W" class="p-2 border rounded">
-        <input type="number" id="dim-h" placeholder="H" class="p-2 border rounded">
-        <input type="number" id="dim-n" placeholder="Nos" class="p-2 border rounded">
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="flex items-center gap-2"><span class="text-[10px] font-bold">START</span><input type="time" id="t-start" class="w-full p-2 border rounded"></div>
+        <div class="flex items-center gap-2"><span class="text-[10px] font-bold">END</span><input type="time" id="t-end" class="w-full p-2 border rounded"></div>
       </div>
 
-      <div class="mt-6 flex gap-4">
-        <button onclick="addToBatch()" class="flex-1 bg-gray-800 text-white p-4 rounded font-bold">ADD JOB</button>
-        <button onclick="finalSubmit()" id="sub-btn" class="flex-1 bg-blue-600 text-white p-4 rounded font-bold opacity-50" disabled>SUBMIT (<span id="batch-count">0</span>)</button>
+      <div class="grid grid-cols-4 gap-2 bg-blue-50 p-4 rounded-xl border border-blue-100">
+        <input type="number" id="v-l" placeholder="L" class="p-2 border rounded text-center">
+        <input type="number" id="v-w" placeholder="W" class="p-2 border rounded text-center">
+        <input type="number" id="v-h" placeholder="H" class="p-2 border rounded text-center">
+        <input type="number" id="v-n" placeholder="Nos" class="p-2 border rounded text-center">
+      </div>
+
+      <div class="flex gap-4 mt-8">
+        <button onclick="addToBatch()" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold uppercase tracking-widest">Add Job</button>
+        <button onclick="submitBatch()" id="btn-submit" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold uppercase tracking-widest opacity-50" disabled>Submit (<span id="batch-count">0</span>)</button>
       </div>
     </div>
   </div>
 
-  <div id="modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center">
-    <div class="bg-white p-8 rounded-xl text-center">
-      <h2 class="text-xl font-bold mb-4">CERTIFICATION READY</h2>
-      <div class="flex flex-col gap-3">
-        <button onclick="download('pdf')" class="bg-red-600 text-white p-3 rounded font-bold">DOWNLOAD PDF</button>
-        <button onclick="download('jpg')" class="bg-green-600 text-white p-3 rounded font-bold">DOWNLOAD JPG</button>
-        <button onclick="location.reload()" class="text-blue-600 underline text-sm mt-4">Start New Session</button>
+  <div id="success-overlay" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-2xl text-center max-w-sm w-full">
+      <div class="text-green-500 text-5xl mb-4">✔</div>
+      <h2 class="text-2xl font-black mb-6">DATA SECURED</h2>
+      <div class="space-y-3">
+        <button onclick="downloadReport('pdf')" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold">DOWNLOAD PDF</button>
+        <button onclick="downloadReport('jpg')" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">DOWNLOAD JPG</button>
+        <button onclick="location.reload()" class="block w-full text-gray-400 text-xs underline mt-4">START NEW SESSION</button>
       </div>
     </div>
   </div>
 
   <div id="report-container">
-    <div class="header-box">
-      <h1 style="margin:0; font-size:28px;">DAILY SCAFFOLDING CERTIFICATION</h1>
+    <div style="text-align:center; border-bottom:4px solid #000; padding-bottom:10px; margin-bottom:20px;">
+      <h1 style="margin:0; font-size:32px; letter-spacing:3px;">DAILY CERTIFICATION REPORT</h1>
     </div>
-    <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
-      <span>SUPERVISOR: <span id="rpt-sup-name"></span></span>
+    <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-bottom:10px;">
+      <span>LOGIN USER: <span id="rpt-user"></span></span>
       <span>DATE: <span id="rpt-date"></span></span>
     </div>
     <table class="report-table">
       <thead>
-        <tr style="background:#ddd">
-          <th>SL</th><th>Area</th><th>Type</th><th>Location</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th>Volume</th>
+        <tr style="background:#eee">
+          <th>SL</th><th>AREA</th><th>JOB TYPE</th><th>LOCATION</th><th>SCAFF TYPE</th><th>ELEV</th><th>START</th><th>END</th><th>L</th><th>W</th><th>H</th><th>NOS</th><th>VOL</th>
         </tr>
       </thead>
       <tbody id="rpt-body"></tbody>
     </table>
-    <h3>MANPOWER DETAILS</h3>
-    <table class="report-table" style="width:70%">
+    <h3 style="border-bottom:2px solid #000; display:inline-block; margin-bottom:10px;">MANPOWER DETAILS</h3>
+    <table class="report-table" style="width:70%;">
       <thead>
-        <tr style="background:#ddd">
-          <th>SL</th><th>Name</th><th>Designation</th><th>Scrum ID</th>
+        <tr style="background:#eee">
+          <th>EMP CODE</th><th>NAME</th><th>DESIGNATION</th>
         </tr>
       </thead>
       <tbody id="rpt-mp-body"></tbody>
     </table>
     <div class="summary-box">
-      <span>TOTAL SCAFFOLDER: <span id="tot-scaff">0</span></span>
-      <span>TOTAL HELPER: <span id="tot-help">0</span></span>
-      <span>TOTAL SUPERVISOR: <span id="tot-sup">0</span></span>
-    </div>
-    <div style="margin-top:50px; display:flex; justify-content:space-between;">
-      <div style="text-align:center; border-top:1px solid #000; width:200px; padding-top:5px;">Supervisor Signature</div>
-      <div style="text-align:center; border-top:1px solid #000; width:200px; padding-top:5px;">AMNS Engineer Signature</div>
+      <span>SCAFFOLDERS: <span id="tot-s">0</span></span>
+      <span>HELPERS: <span id="tot-h">0</span></span>
+      <span>SUPERVISORS: <span id="tot-sup">0</span></span>
     </div>
   </div>
 
   <script>
-    const API = "https://script.google.com/macros/s/AKfycbw_deUvNw7wCTXTHr1yUY5FJqYSINmYP0D2-LTx8QWX1Ia4TJWNq-sVbZ6fyAkKiaxs/exec";
-    let db = {}, activeUser = "", batch = [], selectedMP = [];
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_deUvNw7wCTXTHr1yUY5FJqYSINmYP0D2-LTx8QWX1Ia4TJWNq-sVbZ6fyAkKiaxs/exec";
+    let store = {}, activeUser = "", batch = [], activeManpower = [];
 
     window.onload = async () => {
       document.getElementById('job-date').value = new Date().toISOString().split('T')[0];
-      const res = await fetch(`${API}?action=getData`);
-      db = await res.json();
+      const res = await fetch(`${WEB_APP_URL}?action=getData`);
+      store = await res.json();
       
-      const userEl = document.getElementById('login-user');
-      db.users.forEach(u => userEl.innerHTML += `<option>${u.user}</option>`);
+      const uSel = document.getElementById('login-user');
+      store.users.forEach(u => uSel.innerHTML += `<option>${u.user}</option>`);
       
-      const mpEl = document.getElementById('mp-select');
-      db.manpowerList.forEach((m, i) => mpEl.innerHTML += `<option value="${i}">${m.display}</option>`);
-      
-      const areaEl = document.getElementById('job-area');
-      db.areas.forEach(a => areaEl.innerHTML += `<option>${a}</option>`);
+      const wSel = document.getElementById('worker-select');
+      store.workers.forEach((w, i) => wSel.innerHTML += `<option value="${i}">${w.display}</option>`);
+
+      const aSel = document.getElementById('job-area');
+      store.areas.forEach(a => aSel.innerHTML += `<option>${a}</option>`);
     };
 
     function handleLogin() {
       const u = document.getElementById('login-user').value;
       const p = document.getElementById('login-pass').value;
-      if (db.users.find(x => x.user === u && x.pass == p)) {
+      if (store.users.find(x => x.user === u && x.pass == p)) {
         activeUser = u;
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
-        document.getElementById('user-tag').innerText = u;
-      } else alert("Invalid Credentials");
+        document.getElementById('user-display').innerText = u;
+      } else alert("Access Denied: Incorrect Passcode");
     }
 
     function addWorker() {
-      const idx = document.getElementById('mp-select').value;
-      const worker = db.manpowerList[idx];
-      if (!selectedMP.find(x => x.scrum === worker.scrum)) {
-        selectedMP.push(worker);
-        renderMP();
+      const idx = document.getElementById('worker-select').value;
+      const person = store.workers[idx];
+      if (!activeManpower.find(x => x.empCode === person.empCode)) {
+        activeManpower.push(person);
+        renderManpower();
       }
     }
 
-    function renderMP() {
-      const container = document.getElementById('mp-list');
-      container.innerHTML = selectedMP.map((m, i) => `
-        <span class="bg-white border px-2 py-1 rounded text-xs shadow-sm flex items-center gap-2">
-          ${m.name} <button onclick="selectedMP.splice(${i},1);renderMP()" class="text-red-500 font-bold">×</button>
+    function renderManpower() {
+      const div = document.getElementById('worker-tags');
+      div.innerHTML = activeManpower.map((m, i) => `
+        <span class="bg-white border shadow-sm px-3 py-1 rounded-lg text-[10px] font-bold flex items-center gap-2">
+          ${m.name} <button onclick="activeManpower.splice(${i},1);renderManpower()" class="text-red-500 font-black">×</button>
         </span>
       `).join('');
     }
 
     function addToBatch() {
-      if (!selectedMP.length) return alert("Add Manpower First");
-      const job = {
+      if (!activeManpower.length) return alert("Select manpower first");
+      const l = document.getElementById('v-l').value || 0;
+      const w = document.getElementById('v-w').value || 0;
+      const h = document.getElementById('v-h').value || 0;
+      const n = document.getElementById('v-n').value || 0;
+
+      batch.push({
         date: document.getElementById('job-date').value,
         area: document.getElementById('job-area').value,
         jobType: document.getElementById('job-type').value,
         workLocation: document.getElementById('job-loc').value,
-        amnsEng: document.getElementById('job-eng').value,
+        scaffoldingType: document.getElementById('job-scaff').value,
+        elevation: document.getElementById('job-elev').value,
         startTime: document.getElementById('t-start').value,
         endTime: document.getElementById('t-end').value,
-        l: document.getElementById('dim-l').value || 0,
-        w: document.getElementById('dim-w').value || 0,
-        h: document.getElementById('dim-h').value || 0,
-        nos: document.getElementById('dim-n').value || 0,
-        volume: (document.getElementById('dim-l').value * document.getElementById('dim-w').value * document.getElementById('dim-h').value * document.getElementById('dim-n').value).toFixed(2),
+        l: l, w: w, h: h, nos: n,
+        volume: (l * w * h * n).toFixed(2),
         supervisor: activeUser,
-        manpowerDetails: [...selectedMP]
-      };
-      batch.push(job);
+        manpowerDetails: [...activeManpower]
+      });
+
       document.getElementById('batch-count').innerText = batch.length;
-      document.getElementById('sub-btn').disabled = false;
-      document.getElementById('sub-btn').classList.remove('opacity-50');
-      alert("Job Added to Batch");
+      document.getElementById('btn-submit').disabled = false;
+      document.getElementById('btn-submit').classList.remove('opacity-50');
+      document.getElementById('job-loc').value = "";
     }
 
-    async function finalSubmit() {
-      document.getElementById('sub-btn').innerText = "PROCESING...";
-      const res = await fetch(API, { method: 'POST', body: JSON.stringify(batch) });
+    async function submitBatch() {
+      document.getElementById('btn-submit').innerText = "SYNCHRONIZING...";
+      const res = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(batch) });
       const result = await res.json();
       if (result.success) {
-        prepareReport();
-        document.getElementById('modal').classList.remove('hidden');
+        populateReport();
+        document.getElementById('success-overlay').classList.remove('hidden');
       }
     }
 
-    function prepareReport() {
-      document.getElementById('rpt-sup-name').innerText = activeUser;
+    function populateReport() {
+      document.getElementById('rpt-user').innerText = activeUser;
       document.getElementById('rpt-date').innerText = batch[0].date;
       
-      const body = document.getElementById('rpt-body');
-      body.innerHTML = batch.map((j, i) => `
-        <tr><td>${i+1}</td><td>${j.area}</td><td>${j.jobType}</td><td>${j.workLocation}</td><td>${j.startTime}</td><td>${j.endTime}</td><td>${j.l}</td><td>${j.w}</td><td>${j.h}</td><td>${j.nos}</td><td>${j.volume}</td></tr>
+      document.getElementById('rpt-body').innerHTML = batch.map((j, i) => `
+        <tr><td>${i+1}</td><td>${j.area}</td><td>${j.jobType}</td><td>${j.workLocation}</td><td>${j.scaffoldingType}</td><td>${j.elevation}</td><td>${j.startTime}</td><td>${j.endTime}</td><td>${j.l}</td><td>${j.w}</td><td>${j.h}</td><td>${j.nos}</td><td>${j.volume}</td></tr>
       `).join('');
 
-      let s = 0, h = 0, sup = 0;
-      const mpBody = document.getElementById('rpt-mp-body');
-      mpBody.innerHTML = selectedMP.map((m, i) => {
+      let sc = 0, hl = 0, sp = 0;
+      document.getElementById('rpt-mp-body').innerHTML = activeManpower.map(m => {
         const d = m.designation.toLowerCase();
-        if (d.includes('scaffolder')) s++;
-        else if (d.includes('helper')) h++;
-        else if (d.includes('supervisor')) sup++;
-        return `<tr><td>${i+1}</td><td>${m.name}</td><td>${m.designation}</td><td>${m.scrum}</td></tr>`;
+        if (d.includes('scaffolder')) sc++;
+        else if (d.includes('helper')) hl++;
+        else if (d.includes('supervisor')) sp++;
+        return `<tr><td>${m.empCode}</td><td>${m.name}</td><td>${m.designation}</td></tr>`;
       }).join('');
 
-      document.getElementById('tot-scaff').innerText = s;
-      document.getElementById('tot-help').innerText = h;
-      document.getElementById('tot-sup').innerText = sup;
+      document.getElementById('tot-s').innerText = sc;
+      document.getElementById('tot-h').innerText = hl;
+      document.getElementById('tot-sup').innerText = sp;
     }
 
-    function download(format) {
-      const container = document.getElementById('report-container');
-      html2canvas(container, { scale: 2 }).then(canvas => {
+    function downloadReport(format) {
+      const el = document.getElementById('report-container');
+      html2canvas(el, { scale: 2 }).then(canvas => {
         if (format === 'jpg') {
-          const link = document.createElement('a');
-          link.download = `Report_${Date.now()}.jpg`;
-          link.href = canvas.toDataURL("image/jpeg", 0.9);
-          link.click();
+          const l = document.createElement('a');
+          l.download = `Cert_${Date.now()}.jpg`;
+          l.href = canvas.toDataURL("image/jpeg", 0.9);
+          l.click();
         } else {
-          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const img = canvas.toDataURL('image/jpeg', 1.0);
           const pdf = new jspdf.jsPDF('l', 'px', [1123, 794]);
-          pdf.addImage(imgData, 'JPEG', 0, 0, 1123, 794);
-          pdf.save(`Report_${Date.now()}.pdf`);
+          pdf.addImage(img, 'JPEG', 0, 0, 1123, 794);
+          pdf.save(`Cert_${Date.now()}.pdf`);
         }
       });
     }
