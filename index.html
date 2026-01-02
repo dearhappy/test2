@@ -47,9 +47,13 @@
 
       <div class="border-2 border-blue-100 p-4 rounded-xl bg-blue-50/50 overflow-hidden">
         <label class="text-xs font-black mb-2 block uppercase text-blue-600">Step 1: Assign Manpower</label>
-        <div class="flex flex-row gap-2 mb-4 w-full">
-          <select id="manpowerSelect" class="flex-1 min-w-0 p-2 border rounded text-sm bg-white truncate"></select>
-          <button onclick="addManpower()" class="bg-blue-600 text-white px-5 rounded-lg font-bold shrink-0 shadow-md hover:bg-blue-700">+</button>
+        <div class="flex flex-col gap-2 mb-4 w-full">
+          <!-- New search box -->
+          <input id="mpSearch" type="text" placeholder="Search manpower..." class="w-full p-2 border rounded text-sm bg-white" />
+          <div class="flex flex-row gap-2">
+            <select id="manpowerSelect" class="flex-1 min-w-0 p-2 border rounded text-sm bg-white truncate"></select>
+            <button onclick="addManpower()" class="bg-blue-600 text-white px-5 rounded-lg font-bold shrink-0 shadow-md hover:bg-blue-700">+</button>
+          </div>
         </div>
         <ul id="manpowerList" class="space-y-1 text-xs mb-2 max-h-40 overflow-y-auto"></ul>
       </div>
@@ -119,7 +123,7 @@
     <table class="report-table w-full mb-6">
       <thead>
         <tr style="background: #f2f2f2;">
-          <th>SL</th><th>Area</th><th>Job Type</th><th>Location</th><th>Scaff Type</th><th>Elev</th><th>Scaffs</th><th>Helps</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th>Volume</th>
+          <th>SL</th><th>Area</th><th>Job Type</th><th>Location</th><th>Scaff Type</th><th>Elev</th><th>Scaffs</th><th>Helps</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th[...]
         </tr>
       </thead>
       <tbody id="rpt-body"></tbody>
@@ -135,7 +139,7 @@
       <tbody id="rpt-mp-body"></tbody>
     </table>
 
-    <div style="display: flex; justify-content: center; gap: 40px; font-weight: 900; font-size: 14px; margin-bottom: 40px; border: 2px solid black; padding: 10px; background: #f9f9f9; text-transform: uppercase;">
+    <div style="display: flex; justify-content: center; gap: 40px; font-weight: 900; font-size: 14px; margin-bottom: 40px; border: 2px solid black; padding: 10px; background: #f9f9f9; text-transform: [...]">
       <span>Total Scaffolder: <span id="rpt-total-scaff">0</span></span>
       <span>Total Helper: <span id="rpt-total-help">0</span></span>
       <span>Total Supervisor: <span id="rpt-total-sup">0</span></span>
@@ -165,14 +169,53 @@
           appData = data;
           document.getElementById('login-loading').remove();
           document.getElementById('login-form').classList.remove('hidden');
+
+          // Populate users (support both key shapes)
           const userSel = document.getElementById('login-user');
           userSel.innerHTML = '<option value="">Select Supervisor</option>';
-          data.users.forEach(u => userSel.innerHTML += `<option>${u.user}</option>`);
+          (data.users || []).forEach(u => {
+            const name = u.user || u.username || '';
+            userSel.innerHTML += `<option>${name}</option>`;
+          });
+
+          // Populate manpower select using a render function (and wire search)
           const mpSel = document.getElementById('manpowerSelect');
-          mpSel.innerHTML = '<option value="">Select Manpower</option>';
-          data.manpowerList.forEach((m, i) => { mpSel.innerHTML += `<option value="${i}">${m.display}</option>`; });
+          const mpSearch = document.getElementById('mpSearch');
+
+          function renderManpowerOptions(filter = '') {
+            mpSel.innerHTML = '<option value="">Select Manpower</option>';
+            if (!Array.isArray(appData.manpowerList)) return;
+            const term = filter.trim().toLowerCase();
+            appData.manpowerList.forEach((m, i) => {
+              const display = m.display || `${m.name} (${m.designation || 'N/A'})`;
+              const combined = `${m.name} ${m.designation} ${m.scrum} ${display}`.toLowerCase();
+              if (!term || combined.indexOf(term) !== -1) {
+                mpSel.innerHTML += `<option value="${i}">${display}</option>`;
+              }
+            });
+          }
+
+          // initial render
+          renderManpowerOptions();
+
+          // search handler (debounce)
+          let searchTimer = null;
+          mpSearch.addEventListener('input', (e) => {
+            clearTimeout(searchTimer);
+            searchTimer = setTimeout(() => {
+              renderManpowerOptions(e.target.value);
+            }, 150);
+          });
+
+          // Populate area select
           const areaSel = document.getElementById('area');
-          data.areas.forEach(a => areaSel.innerHTML += `<option>${a}</option>`);
+          areaSel.innerHTML = '<option value="">Select Area</option>';
+          (data.areas || []).forEach(a => areaSel.innerHTML += `<option>${a}</option>`);
+        })
+        .catch(err => {
+          console.error('Failed to load data', err);
+          document.getElementById('login-loading').remove();
+          document.getElementById('login-form').classList.remove('hidden');
         });
 
       document.querySelectorAll('.vol-calc').forEach(input => {
@@ -189,7 +232,8 @@
     function attemptLogin() {
       const user = document.getElementById('login-user').value;
       const pass = document.getElementById('login-pass').value;
-      const found = appData.users.find(u => u.user === user && u.pass == pass);
+      // match either shape
+      const found = (appData.users || []).find(u => (u.user || u.username) === user && (u.pass || u.passcode) == pass);
       if (found) {
         currentUser = user;
         document.getElementById('login-view').classList.add('hidden');
@@ -199,12 +243,16 @@
     }
 
     function addManpower() {
-      const idx = document.getElementById('manpowerSelect').value;
-      if (idx === "") return;
+      const idxStr = document.getElementById('manpowerSelect').value;
+      if (idxStr === "") return;
+      const idx = parseInt(idxStr, 10);
       const person = appData.manpowerList[idx];
-      if (!currentManpower.find(m => m.scrum === person.scrum)) {
+      if (!person) return;
+      if (!currentManpower.find(m => m.scrum === person.scrum && m.name === person.name)) {
         currentManpower.push(person);
         renderManpowerList();
+      } else {
+        alert('Person already added.');
       }
     }
 
@@ -220,10 +268,10 @@
     }
 
     function addEntryToBatch() {
-      const l = document.getElementById('dimL').value || 0;
-      const w = document.getElementById('dimW').value || 0;
-      const h = document.getElementById('dimH').value || 0;
-      const n = document.getElementById('dimNos').value || 0;
+      const l = Number(document.getElementById('dimL').value || 0);
+      const w = Number(document.getElementById('dimW').value || 0);
+      const h = Number(document.getElementById('dimH').value || 0);
+      const n = Number(document.getElementById('dimNos').value || 0);
       if (currentManpower.length === 0) { alert("Please select manpower first!"); return; }
       if (!document.getElementById('workLocation').value) { alert("Location is required"); return; }
       const entry = {
@@ -256,7 +304,7 @@
       btn.disabled = true;
       const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(batch) });
       const result = await response.json();
-      if (result.success) generateCertification();
+      if (result.status === 'success' || result.success) generateCertification();
       else { alert("Error submitting data."); btn.innerText = "SUBMIT"; btn.disabled = false; }
     }
 
@@ -287,7 +335,7 @@
           const desig = m.designation.toLowerCase();
           if(desig.includes('scaffolder')) tScaff++;
           else if(desig.includes('helper')) tHelp++;
-          else if(desig.includes('supervisor')) tSup++; // FIXED: Now counts added supervisors
+          else if(desig.includes('supervisor')) tSup++; // Now counts added supervisors
           
           mpBody.innerHTML += `<tr>
             <td>${idx+1}</td><td>${m.name}</td><td>${m.designation}</td><td>${m.scrum}</td><td></td> 
