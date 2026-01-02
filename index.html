@@ -8,314 +8,240 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
-    /* Landscape A4 Dimensions */
     #report-container { 
-      width: 1123px; 
-      min-height: 794px;
-      background: white; 
-      position: absolute; 
-      top: -9999px; 
-      left: -9999px; 
-      padding: 50px; 
-      box-sizing: border-box;
+      width: 1123px; height: 794px; background: white; 
+      position: absolute; top: -9999px; left: -9999px; 
+      padding: 40px; box-sizing: border-box; font-family: sans-serif;
     }
-    .report-table th, .report-table td { border: 1px solid black; padding: 6px; text-align: center; font-size: 11px; }
-    .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    select { max-width: 100%; text-overflow: ellipsis; }
+    .report-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .report-table th, .report-table td { border: 1px solid #000; padding: 6px; text-align: center; font-size: 11px; }
+    .header-box { text-align: center; border-bottom: 3px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
+    .summary-box { display: flex; justify-content: center; gap: 50px; font-weight: bold; border: 2px solid #000; padding: 12px; background: #f0f0f0; margin-top: 10px; }
   </style>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <div id="login-view" class="flex items-center justify-center min-h-screen p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md border-t-8 border-blue-600">
-      <h2 class="text-3xl font-black text-center mb-6 text-gray-800 uppercase">Daily Certification</h2>
-      <div id="login-loading" class="flex justify-center mb-4"><div class="loader"></div></div>
-      <div id="login-form" class="hidden space-y-4">
-        <select id="login-user" class="w-full p-4 border rounded-xl bg-gray-50"></select>
-        <input type="password" id="login-pass" placeholder="Passcode" class="w-full p-4 border rounded-xl bg-gray-50">
-        <button onclick="attemptLogin()" class="w-full bg-blue-600 text-white py-4 rounded-xl font-bold hover:bg-blue-700 transition">LOGIN</button>
+  <div id="login-view" class="flex items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-xl shadow-2xl w-96 border-t-4 border-blue-600">
+      <h2 class="text-2xl font-bold text-center mb-6">SCAFFOLDING PORTAL</h2>
+      <select id="login-user" class="w-full p-3 border rounded mb-4"></select>
+      <input type="password" id="login-pass" placeholder="Passcode" class="w-full p-3 border rounded mb-4">
+      <button onclick="handleLogin()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">LOGIN</button>
+    </div>
+  </div>
+
+  <div id="app-view" class="hidden p-4 max-w-4xl mx-auto pb-24">
+    <div class="bg-white rounded-xl shadow p-6 mb-6">
+      <div class="flex justify-between items-center mb-6 border-b pb-2">
+        <h1 class="text-xl font-bold text-blue-800">DAILY CERTIFICATION</h1>
+        <span id="user-tag" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-sm font-bold"></span>
+      </div>
+
+      <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 mb-6">
+        <label class="block text-xs font-bold text-blue-600 mb-2">ADD WORKERS & SUPERVISORS</label>
+        <div class="flex gap-2">
+          <select id="mp-select" class="flex-1 p-2 border rounded"></select>
+          <button onclick="addWorker()" class="bg-blue-600 text-white px-4 rounded font-bold">+</button>
+        </div>
+        <div id="mp-list" class="mt-3 flex flex-wrap gap-2"></div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <input type="date" id="job-date" class="p-2 border rounded">
+        <select id="job-area" class="p-2 border rounded"></select>
+        <select id="job-type" class="p-2 border rounded">
+          <option>Erection</option><option>Dismantling</option><option>Modification</option>
+        </select>
+        <input type="text" id="job-loc" placeholder="Equipment/Location" class="p-2 border rounded">
+        <input type="text" id="job-eng" placeholder="AMNS Engineer Name" class="p-2 border rounded uppercase">
+        <div class="flex gap-2">
+          <input type="time" id="t-start" class="w-1/2 p-2 border rounded">
+          <input type="time" id="t-end" class="w-1/2 p-2 border rounded">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-4 gap-2 mt-4 bg-gray-50 p-3 rounded border">
+        <input type="number" id="dim-l" placeholder="L" class="p-2 border rounded">
+        <input type="number" id="dim-w" placeholder="W" class="p-2 border rounded">
+        <input type="number" id="dim-h" placeholder="H" class="p-2 border rounded">
+        <input type="number" id="dim-n" placeholder="Nos" class="p-2 border rounded">
+      </div>
+
+      <div class="mt-6 flex gap-4">
+        <button onclick="addToBatch()" class="flex-1 bg-gray-800 text-white p-4 rounded font-bold">ADD JOB</button>
+        <button onclick="finalSubmit()" id="sub-btn" class="flex-1 bg-blue-600 text-white p-4 rounded font-bold opacity-50" disabled>SUBMIT (<span id="batch-count">0</span>)</button>
       </div>
     </div>
   </div>
 
-  <div id="app-view" class="hidden max-w-2xl mx-auto p-4 pb-20">
-    <div class="bg-white rounded-2xl shadow-lg p-6 space-y-6">
-      <div class="flex justify-between border-b pb-4">
-        <h1 class="font-black text-blue-600 uppercase">Certification Entry</h1>
-        <span id="user-display" class="text-xs font-bold uppercase bg-blue-100 px-2 py-1 rounded"></span>
-      </div>
-
-      <div class="border-2 border-blue-100 p-4 rounded-xl bg-blue-50/50 overflow-hidden">
-        <label class="text-xs font-black mb-2 block uppercase text-blue-600">Step 1: Assign Manpower</label>
-        <div class="flex flex-row gap-2 mb-4 w-full">
-          <select id="manpowerSelect" class="flex-1 min-w-0 p-2 border rounded text-sm bg-white truncate"></select>
-          <button onclick="addManpower()" class="bg-blue-600 text-white px-5 rounded-lg font-bold shrink-0 shadow-md hover:bg-blue-700">+</button>
-        </div>
-        <ul id="manpowerList" class="space-y-1 text-xs mb-2 max-h-40 overflow-y-auto"></ul>
-      </div>
-
-      <div class="space-y-4 pt-2 border-t">
-        <label class="text-xs font-black block uppercase text-gray-600">Step 2: Add Job Details</label>
-        <div class="grid grid-cols-2 gap-4">
-          <input type="date" id="date" class="border p-2 rounded w-full">
-          <select id="area" class="border p-2 rounded w-full"></select>
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <select id="jobType" class="border p-2 rounded w-full">
-            <option>Erection</option><option>Dismantling</option><option>Materials Shifting</option><option>Unloading</option>
-          </select>
-          <select id="scaffType" class="border p-2 rounded w-full">
-            <option>Normal</option><option>Suspended</option><option>Designed</option>
-          </select>
-        </div>
-        <input type="text" id="workLocation" placeholder="Work Location / Equipment No." class="border p-2 rounded w-full text-lg font-bold">
-        <div class="grid grid-cols-2 gap-4">
-          <select id="elevation" class="border p-2 rounded w-full">
-            <option>0–10</option><option>10–20</option><option>20–30</option><option>30–40</option><option>40–50</option><option>0–45</option>
-          </select>
-          <input type="text" id="amnsEng" placeholder="AMNS Engineer Name" class="border p-2 rounded w-full uppercase">
-        </div>
-        <div class="grid grid-cols-2 gap-4">
-          <div><label class="text-[10px] font-bold">Start Time</label><input type="time" id="startTime" class="border p-2 rounded w-full"></div>
-          <div><label class="text-[10px] font-bold">End Time</label><input type="time" id="endTime" class="border p-2 rounded w-full"></div>
-        </div>
-
-        <div class="bg-gray-50 p-4 rounded-xl grid grid-cols-5 gap-2 items-end">
-          <div><label class="text-[9px] font-bold">L</label><input type="number" id="dimL" class="vol-calc w-full border-b border-gray-300 bg-transparent p-1"></div>
-          <div><label class="text-[9px] font-bold">W</label><input type="number" id="dimW" class="vol-calc w-full border-b border-gray-300 bg-transparent p-1"></div>
-          <div><label class="text-[9px] font-bold">H</label><input type="number" id="dimH" class="vol-calc w-full border-b border-gray-300 bg-transparent p-1"></div>
-          <div><label class="text-[9px] font-bold">Nos</label><input type="number" id="dimNos" class="vol-calc w-full border-b border-gray-300 bg-transparent p-1"></div>
-          <div class="text-center"><label class="text-[9px] font-bold block">VOLUME</label><span id="vol-display" class="font-black">0</span></div>
-        </div>
-
-        <div class="flex gap-4 pt-4">
-          <button onclick="addEntryToBatch()" class="flex-1 bg-gray-800 text-white py-4 rounded-xl font-bold">ADD JOB</button>
-          <button onclick="submitBatch()" id="submitBtn" class="flex-1 bg-blue-600 text-white py-4 rounded-xl font-bold opacity-50" disabled>SUBMIT (<span id="count">0</span>)</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div id="wa-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-3xl text-center max-w-sm w-full shadow-2xl">
-      <h3 class="text-2xl font-black mb-2 text-green-600">SUCCESS</h3>
-      <p class="text-sm text-gray-500 mb-6">Reports generated successfully.</p>
-      <div class="space-y-3">
-        <button onclick="downloadAsPDF()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold shadow-lg">DOWNLOAD PDF</button>
-        <a id="wa-link" href="#" target="_blank" class="block w-full bg-green-500 text-white py-3 rounded-xl font-bold">SHARE VIA WHATSAPP</a>
-        <button onclick="location.reload()" class="w-full text-gray-400 font-bold text-xs underline uppercase">New Session</button>
+  <div id="modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl text-center">
+      <h2 class="text-xl font-bold mb-4">CERTIFICATION READY</h2>
+      <div class="flex flex-col gap-3">
+        <button onclick="download('pdf')" class="bg-red-600 text-white p-3 rounded font-bold">DOWNLOAD PDF</button>
+        <button onclick="download('jpg')" class="bg-green-600 text-white p-3 rounded font-bold">DOWNLOAD JPG</button>
+        <button onclick="location.reload()" class="text-blue-600 underline text-sm mt-4">Start New Session</button>
       </div>
     </div>
   </div>
 
   <div id="report-container">
-    <div style="text-align: center; border-bottom: 3px solid black; padding-bottom: 15px; margin-bottom: 20px;">
-      <h1 style="font-size: 32px; font-weight: 900; margin: 0; letter-spacing: 2px;">DAILY CERTIFICATION</h1>
+    <div class="header-box">
+      <h1 style="margin:0; font-size:28px;">DAILY SCAFFOLDING CERTIFICATION</h1>
     </div>
-    <div style="display: flex; justify-content: space-between; margin-bottom: 15px; font-weight: bold; font-size: 14px;">
-      <p>LOGIN USER: <span id="rpt-sup"></span></p>
-      <p>DATE: <span id="rpt-date"></span></p>
+    <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
+      <span>SUPERVISOR: <span id="rpt-sup-name"></span></span>
+      <span>DATE: <span id="rpt-date"></span></span>
     </div>
-    <table class="report-table w-full mb-6">
+    <table class="report-table">
       <thead>
-        <tr style="background: #f2f2f2;">
-          <th>SL</th><th>Area</th><th>Job Type</th><th>Location</th><th>Scaff Type</th><th>Elev</th><th>Scaffs</th><th>Helps</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th>Volume</th>
+        <tr style="background:#ddd">
+          <th>SL</th><th>Area</th><th>Type</th><th>Location</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th>Volume</th>
         </tr>
       </thead>
       <tbody id="rpt-body"></tbody>
     </table>
-    
-    <h3 style="font-size: 16px; font-weight: 900; border-bottom: 2px solid black; margin-bottom: 10px;">MANPOWER DETAILS</h3>
-    <table class="report-table w-full mb-6" style="width: 70%;">
+    <h3>MANPOWER DETAILS</h3>
+    <table class="report-table" style="width:70%">
       <thead>
-        <tr style="background: #f2f2f2;">
-          <th>SL NO.</th><th>NAME</th><th>DESIGNATION</th><th>SCRUM ID</th><th>OVERTIME</th>
+        <tr style="background:#ddd">
+          <th>SL</th><th>Name</th><th>Designation</th><th>Scrum ID</th>
         </tr>
       </thead>
       <tbody id="rpt-mp-body"></tbody>
     </table>
-
-    <div style="display: flex; justify-content: center; gap: 40px; font-weight: 900; font-size: 14px; margin-bottom: 40px; border: 2px solid black; padding: 15px; background: #f9f9f9; text-transform: uppercase;">
-      <span>Total Scaffolder: <span id="rpt-total-scaff">0</span></span>
-      <span>Total Helper: <span id="rpt-total-help">0</span></span>
-      <span>Total Supervisor: <span id="rpt-total-sup">0</span></span>
+    <div class="summary-box">
+      <span>TOTAL SCAFFOLDER: <span id="tot-scaff">0</span></span>
+      <span>TOTAL HELPER: <span id="tot-help">0</span></span>
+      <span>TOTAL SUPERVISOR: <span id="tot-sup">0</span></span>
     </div>
-
-    <div style="margin-top: 50px; display: flex; justify-content: space-between; padding: 0 40px;">
-      <div style="text-align: center; border-top: 1px solid black; width: 250px; padding-top: 10px;">
-        <p id="rpt-sup-sig" style="font-weight: bold; margin: 0; font-size: 14px;"></p>
-        <p style="font-size: 11px;">Supervisor Signature</p>
-      </div>
-      <div style="text-align: center; border-top: 1px solid black; width: 250px; padding-top: 10px;">
-        <p id="rpt-amns-sig" style="font-weight: bold; margin: 0; font-size: 14px;"></p>
-        <p style="font-size: 11px;">AMNS Engineer Signature</p>
-      </div>
+    <div style="margin-top:50px; display:flex; justify-content:space-between;">
+      <div style="text-align:center; border-top:1px solid #000; width:200px; padding-top:5px;">Supervisor Signature</div>
+      <div style="text-align:center; border-top:1px solid #000; width:200px; padding-top:5px;">AMNS Engineer Signature</div>
     </div>
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxoFPOHeo8YPDu2kZYRVOZN7xUa3WfhNCRo0LPfAhSSPfHHSQYTO56sD-AIIhIaEIu2Qg/exec";
-    let appData = {}, currentUser = "", batch = [], currentManpower = [];
+    const API = "https://script.google.com/macros/s/AKfycbw_deUvNw7wCTXTHr1yUY5FJqYSINmYP0D2-LTx8QWX1Ia4TJWNq-sVbZ6fyAkKiaxs/exec";
+    let db = {}, activeUser = "", batch = [], selectedMP = [];
 
-    window.onload = () => {
-      document.getElementById('date').value = new Date().toISOString().split('T')[0];
-      fetch(`${WEB_APP_URL}?action=getData`)
-        .then(res => res.json())
-        .then(data => {
-          appData = data;
-          document.getElementById('login-loading').remove();
-          document.getElementById('login-form').classList.remove('hidden');
-          const userSel = document.getElementById('login-user');
-          userSel.innerHTML = '<option value="">Select Supervisor</option>';
-          data.users.forEach(u => userSel.innerHTML += `<option>${u.user}</option>`);
-          const mpSel = document.getElementById('manpowerSelect');
-          mpSel.innerHTML = '<option value="">Select Manpower</option>';
-          data.manpowerList.forEach((m, i) => { mpSel.innerHTML += `<option value="${i}">${m.display}</option>`; });
-          const areaSel = document.getElementById('area');
-          data.areas.forEach(a => areaSel.innerHTML += `<option>${a}</option>`);
-        });
-
-      document.querySelectorAll('.vol-calc').forEach(input => {
-        input.addEventListener('input', () => {
-          const l = document.getElementById('dimL').value || 0;
-          const w = document.getElementById('dimW').value || 0;
-          const h = document.getElementById('dimH').value || 0;
-          const n = document.getElementById('dimNos').value || 0;
-          document.getElementById('vol-display').innerText = (l * w * h * n).toFixed(2);
-        });
-      });
+    window.onload = async () => {
+      document.getElementById('job-date').value = new Date().toISOString().split('T')[0];
+      const res = await fetch(`${API}?action=getData`);
+      db = await res.json();
+      
+      const userEl = document.getElementById('login-user');
+      db.users.forEach(u => userEl.innerHTML += `<option>${u.user}</option>`);
+      
+      const mpEl = document.getElementById('mp-select');
+      db.manpowerList.forEach((m, i) => mpEl.innerHTML += `<option value="${i}">${m.display}</option>`);
+      
+      const areaEl = document.getElementById('job-area');
+      db.areas.forEach(a => areaEl.innerHTML += `<option>${a}</option>`);
     };
 
-    function attemptLogin() {
-      const user = document.getElementById('login-user').value;
-      const pass = document.getElementById('login-pass').value;
-      const found = appData.users.find(u => u.user === user && u.pass == pass);
-      if (found) {
-        currentUser = user;
+    function handleLogin() {
+      const u = document.getElementById('login-user').value;
+      const p = document.getElementById('login-pass').value;
+      if (db.users.find(x => x.user === u && x.pass == p)) {
+        activeUser = u;
         document.getElementById('login-view').classList.add('hidden');
         document.getElementById('app-view').classList.remove('hidden');
-        document.getElementById('user-display').innerText = user;
-      } else alert("Invalid Passcode");
+        document.getElementById('user-tag').innerText = u;
+      } else alert("Invalid Credentials");
     }
 
-    function addManpower() {
-      const idx = document.getElementById('manpowerSelect').value;
-      if (idx === "") return;
-      const person = appData.manpowerList[idx];
-      if (!currentManpower.find(m => m.scrum === person.scrum)) {
-        currentManpower.push(person);
-        renderManpowerList();
+    function addWorker() {
+      const idx = document.getElementById('mp-select').value;
+      const worker = db.manpowerList[idx];
+      if (!selectedMP.find(x => x.scrum === worker.scrum)) {
+        selectedMP.push(worker);
+        renderMP();
       }
     }
 
-    function renderManpowerList() {
-      const list = document.getElementById('manpowerList');
-      list.innerHTML = "";
-      currentManpower.forEach((m, i) => {
-        list.innerHTML += `<li class="flex justify-between items-center bg-white p-2 rounded border shadow-sm">
-          <span class="truncate pr-2">${m.name} (${m.designation})</span>
-          <button onclick="currentManpower.splice(${i},1);renderManpowerList()" class="text-red-500 font-bold px-2 shrink-0">X</button>
-        </li>`;
-      });
+    function renderMP() {
+      const container = document.getElementById('mp-list');
+      container.innerHTML = selectedMP.map((m, i) => `
+        <span class="bg-white border px-2 py-1 rounded text-xs shadow-sm flex items-center gap-2">
+          ${m.name} <button onclick="selectedMP.splice(${i},1);renderMP()" class="text-red-500 font-bold">×</button>
+        </span>
+      `).join('');
     }
 
-    function addEntryToBatch() {
-      if (currentManpower.length === 0) { alert("Please select manpower first!"); return; }
-      if (!document.getElementById('workLocation').value) { alert("Location is required"); return; }
-      
-      const l = document.getElementById('dimL').value || 0;
-      const w = document.getElementById('dimW').value || 0;
-      const h = document.getElementById('dimH').value || 0;
-      const n = document.getElementById('dimNos').value || 0;
-      
-      batch.push({
-        date: document.getElementById('date').value,
-        area: document.getElementById('area').value,
-        jobType: document.getElementById('jobType').value,
-        scaffoldingType: document.getElementById('scaffType').value,
-        workLocation: document.getElementById('workLocation').value,
-        elevation: document.getElementById('elevation').value,
-        amnsEng: document.getElementById('amnsEng').value,
-        startTime: document.getElementById('startTime').value,
-        endTime: document.getElementById('endTime').value,
-        l: l, w: w, h: h, nos: n,
-        volume: (l * w * h * n).toFixed(2),
-        supervisor: currentUser,
-        manpowerDetails: [...currentManpower] 
-      });
-
-      document.getElementById('count').innerText = batch.length;
-      document.getElementById('submitBtn').disabled = false;
-      document.getElementById('submitBtn').classList.remove('opacity-50');
-      document.getElementById('workLocation').value = "";
-      document.getElementById('vol-display').innerText = "0";
-      alert("Job added.");
+    function addToBatch() {
+      if (!selectedMP.length) return alert("Add Manpower First");
+      const job = {
+        date: document.getElementById('job-date').value,
+        area: document.getElementById('job-area').value,
+        jobType: document.getElementById('job-type').value,
+        workLocation: document.getElementById('job-loc').value,
+        amnsEng: document.getElementById('job-eng').value,
+        startTime: document.getElementById('t-start').value,
+        endTime: document.getElementById('t-end').value,
+        l: document.getElementById('dim-l').value || 0,
+        w: document.getElementById('dim-w').value || 0,
+        h: document.getElementById('dim-h').value || 0,
+        nos: document.getElementById('dim-n').value || 0,
+        volume: (document.getElementById('dim-l').value * document.getElementById('dim-w').value * document.getElementById('dim-h').value * document.getElementById('dim-n').value).toFixed(2),
+        supervisor: activeUser,
+        manpowerDetails: [...selectedMP]
+      };
+      batch.push(job);
+      document.getElementById('batch-count').innerText = batch.length;
+      document.getElementById('sub-btn').disabled = false;
+      document.getElementById('sub-btn').classList.remove('opacity-50');
+      alert("Job Added to Batch");
     }
 
-    async function submitBatch() {
-      const btn = document.getElementById('submitBtn');
-      btn.innerText = "SENDING...";
-      btn.disabled = true;
-      const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(batch) });
-      const result = await response.json();
-      if (result.success) generateCertification();
-      else { alert("Error submitting data."); btn.innerText = "SUBMIT"; btn.disabled = false; }
+    async function finalSubmit() {
+      document.getElementById('sub-btn').innerText = "PROCESING...";
+      const res = await fetch(API, { method: 'POST', body: JSON.stringify(batch) });
+      const result = await res.json();
+      if (result.success) {
+        prepareReport();
+        document.getElementById('modal').classList.remove('hidden');
+      }
     }
 
-    function generateCertification() {
-      document.getElementById('rpt-sup').innerText = currentUser;
+    function prepareReport() {
+      document.getElementById('rpt-sup-name').innerText = activeUser;
       document.getElementById('rpt-date').innerText = batch[0].date;
-      document.getElementById('rpt-sup-sig').innerText = currentUser;
-      document.getElementById('rpt-amns-sig').innerText = batch[0].amnsEng;
       
       const body = document.getElementById('rpt-body');
+      body.innerHTML = batch.map((j, i) => `
+        <tr><td>${i+1}</td><td>${j.area}</td><td>${j.jobType}</td><td>${j.workLocation}</td><td>${j.startTime}</td><td>${j.endTime}</td><td>${j.l}</td><td>${j.w}</td><td>${j.h}</td><td>${j.nos}</td><td>${j.volume}</td></tr>
+      `).join('');
+
+      let s = 0, h = 0, sup = 0;
       const mpBody = document.getElementById('rpt-mp-body');
-      body.innerHTML = "";
-      mpBody.innerHTML = "";
+      mpBody.innerHTML = selectedMP.map((m, i) => {
+        const d = m.designation.toLowerCase();
+        if (d.includes('scaffolder')) s++;
+        else if (d.includes('helper')) h++;
+        else if (d.includes('supervisor')) sup++;
+        return `<tr><td>${i+1}</td><td>${m.name}</td><td>${m.designation}</td><td>${m.scrum}</td></tr>`;
+      }).join('');
 
-      batch.forEach((j, i) => {
-        const scaf = j.manpowerDetails.filter(m => m.designation.toLowerCase().includes('scaffolder')).length;
-        const help = j.manpowerDetails.filter(m => m.designation.toLowerCase().includes('helper')).length;
-        body.innerHTML += `<tr>
-          <td>${i+1}</td><td>${j.area}</td><td>${j.jobType}</td><td>${j.workLocation}</td>
-          <td>${j.scaffoldingType}</td><td>${j.elevation}</td><td>${scaf}</td><td>${help}</td>
-          <td>${j.startTime}</td><td>${j.endTime}</td><td>${j.l}</td><td>${j.w}</td><td>${j.h}</td><td>${j.nos}</td><td>${j.volume}</td>
-        </tr>`;
-      });
-
-      let tScaff = 0, tHelp = 0, tSup = 0;
-      currentManpower.forEach((m, idx) => {
-          const desig = m.designation.toLowerCase();
-          if(desig.includes('scaffolder')) tScaff++;
-          else if(desig.includes('helper')) tHelp++;
-          else if(desig.includes('supervisor')) tSup++; // Counts based on ADDED manpower
-          
-          mpBody.innerHTML += `<tr>
-            <td>${idx+1}</td><td>${m.name}</td><td>${m.designation}</td><td>${m.scrum}</td><td></td> 
-          </tr>`;
-      });
-
-      document.getElementById('rpt-total-scaff').innerText = tScaff;
-      document.getElementById('rpt-total-help').innerText = tHelp;
-      document.getElementById('rpt-total-sup').innerText = tSup;
-
-      html2canvas(document.getElementById('report-container'), { scale: 2 }).then(canvas => {
-        const link = document.createElement('a');
-        link.download = `Certification_${Date.now()}.jpg`;
-        link.href = canvas.toDataURL("image/jpeg", 0.9);
-        link.click();
-        document.getElementById('wa-modal').classList.remove('hidden');
-      });
+      document.getElementById('tot-scaff').innerText = s;
+      document.getElementById('tot-help').innerText = h;
+      document.getElementById('tot-sup').innerText = sup;
     }
 
-    function downloadAsPDF() {
-      const { jsPDF } = window.jspdf;
-      html2canvas(document.getElementById('report-container'), { scale: 2 }).then(canvas => {
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        const pdf = new jsPDF('l', 'px', [1123, 794]);
-        pdf.addImage(imgData, 'JPEG', 0, 0, 1123, 794);
-        pdf.save(`Certification_${Date.now()}.pdf`);
+    function download(format) {
+      const container = document.getElementById('report-container');
+      html2canvas(container, { scale: 2 }).then(canvas => {
+        if (format === 'jpg') {
+          const link = document.createElement('a');
+          link.download = `Report_${Date.now()}.jpg`;
+          link.href = canvas.toDataURL("image/jpeg", 0.9);
+          link.click();
+        } else {
+          const imgData = canvas.toDataURL('image/jpeg', 1.0);
+          const pdf = new jspdf.jsPDF('l', 'px', [1123, 794]);
+          pdf.addImage(imgData, 'JPEG', 0, 0, 1123, 794);
+          pdf.save(`Report_${Date.now()}.pdf`);
+        }
       });
     }
   </script>
