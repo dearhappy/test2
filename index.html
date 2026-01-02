@@ -8,6 +8,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
+    /* Landscape A4 Dimensions */
     #report-container { 
       width: 1123px; 
       min-height: 794px;
@@ -47,13 +48,9 @@
 
       <div class="border-2 border-blue-100 p-4 rounded-xl bg-blue-50/50 overflow-hidden">
         <label class="text-xs font-black mb-2 block uppercase text-blue-600">Step 1: Assign Manpower</label>
-        <div class="flex flex-col gap-2 mb-4 w-full">
-          <!-- New search box -->
-          <input id="mpSearch" type="text" placeholder="Search manpower..." class="w-full p-2 border rounded text-sm bg-white" />
-          <div class="flex flex-row gap-2">
-            <select id="manpowerSelect" class="flex-1 min-w-0 p-2 border rounded text-sm bg-white truncate"></select>
-            <button onclick="addManpower()" class="bg-blue-600 text-white px-5 rounded-lg font-bold shrink-0 shadow-md hover:bg-blue-700">+</button>
-          </div>
+        <div class="flex flex-row gap-2 mb-4 w-full">
+          <select id="manpowerSelect" class="flex-1 min-w-0 p-2 border rounded text-sm bg-white truncate"></select>
+          <button onclick="addManpower()" class="bg-blue-600 text-white px-5 rounded-lg font-bold shrink-0 shadow-md hover:bg-blue-700">+</button>
         </div>
         <ul id="manpowerList" class="space-y-1 text-xs mb-2 max-h-40 overflow-y-auto"></ul>
       </div>
@@ -101,11 +98,11 @@
   </div>
 
   <div id="wa-modal" class="fixed inset-0 bg-black/80 hidden flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-3xl text-center max-sm w-full shadow-2xl">
+    <div class="bg-white p-8 rounded-3xl text-center max-w-sm w-full shadow-2xl">
       <h3 class="text-2xl font-black mb-2 text-green-600">SUCCESS</h3>
       <p class="text-sm text-gray-500 mb-6">Reports generated successfully.</p>
       <div class="space-y-3">
-        <button onclick="downloadAsPDF()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold">DOWNLOAD PDF</button>
+        <button onclick="downloadAsPDF()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold shadow-lg">DOWNLOAD PDF</button>
         <a id="wa-link" href="#" target="_blank" class="block w-full bg-green-500 text-white py-3 rounded-xl font-bold">SHARE VIA WHATSAPP</a>
         <button onclick="location.reload()" class="w-full text-gray-400 font-bold text-xs underline uppercase">New Session</button>
       </div>
@@ -123,7 +120,7 @@
     <table class="report-table w-full mb-6">
       <thead>
         <tr style="background: #f2f2f2;">
-          <th>SL</th><th>Area</th><th>Job Type</th><th>Location</th><th>Scaff Type</th><th>Elev</th><th>Scaffs</th><th>Helps</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th[...]
+          <th>SL</th><th>Area</th><th>Job Type</th><th>Location</th><th>Scaff Type</th><th>Elev</th><th>Scaffs</th><th>Helps</th><th>Start</th><th>End</th><th>L</th><th>W</th><th>H</th><th>Nos</th><th>Volume</th>
         </tr>
       </thead>
       <tbody id="rpt-body"></tbody>
@@ -139,7 +136,7 @@
       <tbody id="rpt-mp-body"></tbody>
     </table>
 
-    <div style="display: flex; justify-content: center; gap: 40px; font-weight: 900; font-size: 14px; margin-bottom: 40px; border: 2px solid black; padding: 10px; background: #f9f9f9; text-transform: [...]">
+    <div style="display: flex; justify-content: center; gap: 40px; font-weight: 900; font-size: 14px; margin-bottom: 40px; border: 2px solid black; padding: 15px; background: #f9f9f9; text-transform: uppercase;">
       <span>Total Scaffolder: <span id="rpt-total-scaff">0</span></span>
       <span>Total Helper: <span id="rpt-total-help">0</span></span>
       <span>Total Supervisor: <span id="rpt-total-sup">0</span></span>
@@ -158,7 +155,7 @@
   </div>
 
   <script>
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbw_deUvNw7wCTXTHr1yUY5FJqYSINmYP0D2-LTx8QWX1Ia4TJWNq-sVbZ6fyAkKiaxs/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxoFPOHeo8YPDu2kZYRVOZN7xUa3WfhNCRo0LPfAhSSPfHHSQYTO56sD-AIIhIaEIu2Qg/exec";
     let appData = {}, currentUser = "", batch = [], currentManpower = [];
 
     window.onload = () => {
@@ -169,53 +166,14 @@
           appData = data;
           document.getElementById('login-loading').remove();
           document.getElementById('login-form').classList.remove('hidden');
-
-          // Populate users (support both key shapes)
           const userSel = document.getElementById('login-user');
           userSel.innerHTML = '<option value="">Select Supervisor</option>';
-          (data.users || []).forEach(u => {
-            const name = u.user || u.username || '';
-            userSel.innerHTML += `<option>${name}</option>`;
-          });
-
-          // Populate manpower select using a render function (and wire search)
+          data.users.forEach(u => userSel.innerHTML += `<option>${u.user}</option>`);
           const mpSel = document.getElementById('manpowerSelect');
-          const mpSearch = document.getElementById('mpSearch');
-
-          function renderManpowerOptions(filter = '') {
-            mpSel.innerHTML = '<option value="">Select Manpower</option>';
-            if (!Array.isArray(appData.manpowerList)) return;
-            const term = filter.trim().toLowerCase();
-            appData.manpowerList.forEach((m, i) => {
-              const display = m.display || `${m.name} (${m.designation || 'N/A'})`;
-              const combined = `${m.name} ${m.designation} ${m.scrum} ${display}`.toLowerCase();
-              if (!term || combined.indexOf(term) !== -1) {
-                mpSel.innerHTML += `<option value="${i}">${display}</option>`;
-              }
-            });
-          }
-
-          // initial render
-          renderManpowerOptions();
-
-          // search handler (debounce)
-          let searchTimer = null;
-          mpSearch.addEventListener('input', (e) => {
-            clearTimeout(searchTimer);
-            searchTimer = setTimeout(() => {
-              renderManpowerOptions(e.target.value);
-            }, 150);
-          });
-
-          // Populate area select
+          mpSel.innerHTML = '<option value="">Select Manpower</option>';
+          data.manpowerList.forEach((m, i) => { mpSel.innerHTML += `<option value="${i}">${m.display}</option>`; });
           const areaSel = document.getElementById('area');
-          areaSel.innerHTML = '<option value="">Select Area</option>';
-          (data.areas || []).forEach(a => areaSel.innerHTML += `<option>${a}</option>`);
-        })
-        .catch(err => {
-          console.error('Failed to load data', err);
-          document.getElementById('login-loading').remove();
-          document.getElementById('login-form').classList.remove('hidden');
+          data.areas.forEach(a => areaSel.innerHTML += `<option>${a}</option>`);
         });
 
       document.querySelectorAll('.vol-calc').forEach(input => {
@@ -232,8 +190,7 @@
     function attemptLogin() {
       const user = document.getElementById('login-user').value;
       const pass = document.getElementById('login-pass').value;
-      // match either shape
-      const found = (appData.users || []).find(u => (u.user || u.username) === user && (u.pass || u.passcode) == pass);
+      const found = appData.users.find(u => u.user === user && u.pass == pass);
       if (found) {
         currentUser = user;
         document.getElementById('login-view').classList.add('hidden');
@@ -243,16 +200,12 @@
     }
 
     function addManpower() {
-      const idxStr = document.getElementById('manpowerSelect').value;
-      if (idxStr === "") return;
-      const idx = parseInt(idxStr, 10);
+      const idx = document.getElementById('manpowerSelect').value;
+      if (idx === "") return;
       const person = appData.manpowerList[idx];
-      if (!person) return;
-      if (!currentManpower.find(m => m.scrum === person.scrum && m.name === person.name)) {
+      if (!currentManpower.find(m => m.scrum === person.scrum)) {
         currentManpower.push(person);
         renderManpowerList();
-      } else {
-        alert('Person already added.');
       }
     }
 
@@ -268,13 +221,15 @@
     }
 
     function addEntryToBatch() {
-      const l = Number(document.getElementById('dimL').value || 0);
-      const w = Number(document.getElementById('dimW').value || 0);
-      const h = Number(document.getElementById('dimH').value || 0);
-      const n = Number(document.getElementById('dimNos').value || 0);
       if (currentManpower.length === 0) { alert("Please select manpower first!"); return; }
       if (!document.getElementById('workLocation').value) { alert("Location is required"); return; }
-      const entry = {
+      
+      const l = document.getElementById('dimL').value || 0;
+      const w = document.getElementById('dimW').value || 0;
+      const h = document.getElementById('dimH').value || 0;
+      const n = document.getElementById('dimNos').value || 0;
+      
+      batch.push({
         date: document.getElementById('date').value,
         area: document.getElementById('area').value,
         jobType: document.getElementById('jobType').value,
@@ -288,8 +243,8 @@
         volume: (l * w * h * n).toFixed(2),
         supervisor: currentUser,
         manpowerDetails: [...currentManpower] 
-      };
-      batch.push(entry);
+      });
+
       document.getElementById('count').innerText = batch.length;
       document.getElementById('submitBtn').disabled = false;
       document.getElementById('submitBtn').classList.remove('opacity-50');
@@ -304,7 +259,7 @@
       btn.disabled = true;
       const response = await fetch(WEB_APP_URL, { method: 'POST', body: JSON.stringify(batch) });
       const result = await response.json();
-      if (result.status === 'success' || result.success) generateCertification();
+      if (result.success) generateCertification();
       else { alert("Error submitting data."); btn.innerText = "SUBMIT"; btn.disabled = false; }
     }
 
@@ -329,13 +284,12 @@
         </tr>`;
       });
 
-      // DYNAMIC CALCULATION OF TOTALS BASED ON ADDED LIST
       let tScaff = 0, tHelp = 0, tSup = 0;
       currentManpower.forEach((m, idx) => {
           const desig = m.designation.toLowerCase();
           if(desig.includes('scaffolder')) tScaff++;
           else if(desig.includes('helper')) tHelp++;
-          else if(desig.includes('supervisor')) tSup++; // Now counts added supervisors
+          else if(desig.includes('supervisor')) tSup++; // Counts based on ADDED manpower
           
           mpBody.innerHTML += `<tr>
             <td>${idx+1}</td><td>${m.name}</td><td>${m.designation}</td><td>${m.scrum}</td><td></td> 
