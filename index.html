@@ -15,26 +15,47 @@
     .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
     @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     
+    /* REPORT CONTAINER STYLING - LANDSCAPE A4 */
     #report-container {
-      width: 297mm;
+      width: 297mm; /* Landscape */
       background: white;
       padding: 10mm;
       display: none; 
       position: absolute; 
       top: 0; left: 0; z-index: -1;
       color: #000;
+      font-family: Arial, sans-serif;
     }
+
+    /* HEADER GRID SYSTEM */
+    .report-header-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr); /* 4 Columns */
+      border: 1px solid #000;
+      margin-bottom: 15px;
+    }
+    .header-cell {
+      border: 1px solid #000;
+      padding: 8px;
+      font-size: 11px;
+    }
+    .header-label { font-weight: bold; display: block; margin-bottom: 2px; color: #333; }
+    .header-value { font-weight: bold; font-size: 13px; color: #000; }
+
+    /* TABLE STYLING */
     .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
     .report-table th, .report-table td { 
-      border: 0.5pt solid #000; 
-      padding: 4px 2px; 
+      border: 1px solid #000; 
+      padding: 5px 2px; 
       text-align: center; 
-      font-size: 9px; 
+      font-size: 10px; 
       word-wrap: break-word; 
     }
-    .report-header { background-color: #f0f0f0; font-weight: bold; }
-    .summary-section { display: flex; justify-content: space-between; margin-bottom: 10px; border: 1px solid #000; padding: 10px; }
-    .stat-box { font-size: 11px; line-height: 1.4; }
+    .tbl-head { background-color: #e5e7eb; font-weight: bold; text-transform: uppercase; }
+
+    /* FOOTER STYLING */
+    .footer-section { margin-top: 50px; display: flex; justify-content: space-between; padding: 0 50px; }
+    .sign-box { text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 12px; }
   </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
@@ -88,9 +109,7 @@
                 <option value="Hanging">Hanging</option>
                 <option value="Designed">Designed</option>
             </select>
-            <select id="f-elevation" class="border rounded p-2 text-sm">
-                <option value="">Elevation</option>
-            </select>
+            <select id="f-elevation" class="border rounded p-2 text-sm"><option value="">Elevation</option></select>
           </div>
           <div class="bg-gray-100 p-2 rounded grid grid-cols-4 gap-1">
             <input type="number" id="f-l" placeholder="L" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
@@ -129,21 +148,55 @@
   </div>
 
   <div id="report-container">
-    <div style="text-align: center; margin-bottom: 10px;"><h1 style="margin:0; font-size: 20px;">SCAFFOLDING JOB COMPLETION REPORT</h1></div>
-    <div class="summary-section">
-      <div class="stat-box"><strong>DATE:</strong> <span id="rpt-date"></span><br><strong>SUPERVISOR:</strong> <span id="rpt-sup-name"></span><br><strong>AMNS ENGINEER:</strong> <span id="rpt-eng-name"></span></div>
-      <div class="stat-box"><strong>TOTAL MANPOWER:</strong> <span id="rpt-mp"></span><br><strong>TOTAL MANHOURS:</strong> <span id="rpt-mh"></span><br><strong>PRODUCTIVITY:</strong> <span id="rpt-prod"></span></div>
-      <div class="stat-box"><strong>TOTAL ERECTION:</strong> <span id="rpt-ere"></span> m³<br><strong>TOTAL DISMANTLING:</strong> <span id="rpt-dis"></span> m³<br><strong>EQUIVALENT VOL:</strong> <span id="rpt-eqv"></span> m³</div>
+    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
+      <h1 style="margin:0; font-size: 24px; text-transform: uppercase;">Job Completion Report</h1>
     </div>
+    
+    <div class="report-header-grid">
+        <div class="header-cell"><span class="header-label">DATE</span><span class="header-value" id="rpt-date"></span></div>
+        <div class="header-cell"><span class="header-label">SUPERVISOR NAME</span><span class="header-value" id="rpt-sup-name"></span></div>
+        <div class="header-cell"><span class="header-label">TOTAL MANPOWER</span><span class="header-value" id="rpt-mp"></span></div>
+        <div class="header-cell"><span class="header-label">TOTAL MANHOURS</span><span class="header-value" id="rpt-mh"></span></div>
+        
+        <div class="header-cell"><span class="header-label">TOTAL ERECTION</span><span class="header-value" id="rpt-ere"></span> m³</div>
+        <div class="header-cell"><span class="header-label">TOTAL DISMANTLING</span><span class="header-value" id="rpt-dis"></span> m³</div>
+        <div class="header-cell"><span class="header-label">EQUIVALENT VOLUME</span><span class="header-value" id="rpt-eqv"></span> m³</div>
+        <div class="header-cell"><span class="header-label">PRODUCTIVITY</span><span class="header-value" id="rpt-prod"></span></div>
+    </div>
+
     <table class="report-table">
-      <thead class="report-header">
-        <tr><th style="width:30px">SL</th><th style="width:60px">Sheet No</th><th style="width:60px">Date</th><th style="width:60px">Tag No</th><th style="width:60px">Area</th><th style="width:70px">Dept</th><th style="width:70px">Job Type</th><th style="width:80px">Location</th><th style="width:70px">Scaffold</th><th style="width:50px">Elev.</th><th style="width:70px">Sup Name</th><th style="width:70px">Eng Name</th><th style="width:30px">L</th><th style="width:30px">W</th><th style="width:30px">H</th><th style="width:30px">Nos</th><th style="width:50px">Volume</th></tr>
+      <thead>
+        <tr class="tbl-head">
+          <th style="width:30px">SL</th>
+          <th style="width:50px">Sheet No</th>
+          <th style="width:60px">Date</th>
+          <th style="width:50px">Tag No</th>
+          <th style="width:60px">Area</th>
+          <th style="width:60px">Dept</th>
+          <th style="width:70px">Job Type</th>
+          <th style="width:80px">Work Location</th>
+          <th style="width:60px">Scaf Type</th>
+          <th style="width:50px">Elev</th>
+          <th style="width:70px">Sup Name</th>
+          <th style="width:70px">AMNS Eng</th>
+          <th style="width:30px">L</th>
+          <th style="width:30px">W</th>
+          <th style="width:30px">H</th>
+          <th style="width:30px">Nos</th>
+          <th style="width:50px">Volume</th>
+        </tr>
       </thead>
       <tbody id="rpt-table-body"></tbody>
     </table>
-    <div style="margin-top: 40px; display: flex; justify-content: space-around;">
-      <div style="text-align: center; width: 250px; border-top: 1px solid #000; padding-top: 5px; font-size: 12px;"><strong>Supervisor Signature</strong></div>
-      <div style="text-align: center; width: 250px; border-top: 1px solid #000; padding-top: 5px; font-size: 12px;"><strong>AMNS Engineer Signature</strong></div>
+
+    <div class="footer-section">
+      <div class="sign-box">
+         <div style="height:40px;"></div> <span>Supervisor Signature</span>
+      </div>
+      <div class="sign-box">
+         <div style="height:40px;"></div>
+         <span>AMNS Eng. Signature</span>
+      </div>
     </div>
   </div>
 
@@ -151,24 +204,18 @@
     const APP_URL = "https://script.google.com/macros/s/AKfycbxkzRv-FufgO4unbMAMmKrKQ36tdLttDa5UblizEq7p0uFs1fcUl3SKeVmeuPVdo7PfOg/exec";
     let sessionData = { supervisor: '', entries: [], date: '', stats: {} };
 
-    // NEW FUNCTION: DYNAMIC ELEVATION LOGIC
+    // DYNAMIC ELEVATION LOGIC
     function updateElevationDropdown() {
         const type = document.getElementById('f-scaffold').value;
         const elevDrop = document.getElementById('f-elevation');
         elevDrop.innerHTML = '<option value="">Elevation</option>';
         
         let options = [];
-        if (type === "Normal") {
-            options = ["0TO10", "10TO20", "20TO30", "30TO40", "40TO50"];
-        } else if (type === "Hanging") {
-            options = ["0TO10", "10TO20", "ABOVE20"];
-        } else if (type === "Designed") {
-            options = ["0TO45"];
-        }
+        if (type === "Normal") options = ["0TO10", "10TO20", "20TO30", "30TO40", "40TO50"];
+        else if (type === "Hanging") options = ["0TO10", "10TO20", "ABOVE20"];
+        else if (type === "Designed") options = ["0TO45"];
 
-        options.forEach(opt => {
-            elevDrop.innerHTML += `<option value="${opt}">${opt}</option>`;
-        });
+        options.forEach(opt => elevDrop.innerHTML += `<option value="${opt}">${opt}</option>`);
     }
 
     async function apiCall(action, payload = {}) {
@@ -185,7 +232,6 @@
         fillDrop('login-username', data.users);
         fillDrop('f-area', data.areas);
         fillDrop('f-dept', data.departments);
-        // Scaffolding type logic now hardcoded in HTML as requested
         document.getElementById('loading').classList.add('hidden');
         document.getElementById('login-screen').classList.remove('hidden');
       }
@@ -226,6 +272,7 @@
       if(!type) return alert("Select Job Type");
       const photoFile = document.getElementById('f-photo').files[0];
       const photoData = photoFile ? await toB64(photoFile) : null;
+      
       const entry = {
         sheetNo: document.getElementById('f-sheet').value || "-", date: document.getElementById('f-date').value,
         tagNo: document.getElementById('f-tag').value || "-", area: document.getElementById('f-area').value,
@@ -235,6 +282,7 @@
         h: document.getElementById('f-h').value || "-", nos: document.getElementById('f-nos').value || "-",
         vol: calcVol(), image: photoData
       };
+      
       sessionData.entries.push(entry);
       document.getElementById('entry-count').innerText = "Entries: " + sessionData.entries.length;
       renderMiniList();
@@ -258,30 +306,55 @@
       const mp = parseFloat(document.getElementById('final-manpower').value);
       const eng = document.getElementById('final-eng-name').value;
       if(!mp || !eng) return alert("Enter Manpower and Engineer Name");
+      
       const btn = document.getElementById('btn-submit-all');
-      btn.innerText = "Submitting..."; btn.disabled = true;
+      btn.innerText = "Processing..."; btn.disabled = true;
+
       const ere = sessionData.entries.filter(e => e.jobType === "Erection").reduce((a, b) => a + b.vol, 0);
       const dis = sessionData.entries.filter(e => e.jobType === "Dismantling").reduce((a, b) => a + b.vol, 0);
-      const mh = mp * 12; const eqv = ere + (dis / 2); const prod = mh > 0 ? (eqv / mh).toFixed(3) : 0;
+      const mh = mp * 12; 
+      const eqv = ere + (dis / 2); 
+      const prod = mh > 0 ? (eqv / mh).toFixed(3) : 0;
+      
       sessionData.stats = { mp, eng, mh, ere, dis, eqv, prod };
-      const res = await apiCall('submit', { payload: { supervisor: sessionData.supervisor, global: { amnsEngName: eng, totalManpower: mp, date: sessionData.date }, entries: sessionData.entries }});
-      if(res.success) { await drawReport(); document.getElementById('finalize-screen').classList.add('hidden'); document.getElementById('success-screen').classList.remove('hidden'); }
-      else { alert("Submission Failed"); btn.innerText = "SUBMIT & DOWNLOAD REPORT"; btn.disabled = false; }
+
+      const res = await apiCall('submit', { payload: { 
+        supervisor: sessionData.supervisor, 
+        global: { amnsEngName: eng, totalManpower: mp, date: sessionData.date }, 
+        entries: sessionData.entries 
+      }});
+
+      if(res.success) { 
+        await drawReport(); 
+        document.getElementById('finalize-screen').classList.add('hidden'); 
+        document.getElementById('success-screen').classList.remove('hidden'); 
+      } else { 
+        alert("Submission Failed"); 
+        btn.innerText = "SUBMIT & DOWNLOAD REPORT"; btn.disabled = false; 
+      }
     }
 
     async function drawReport() {
       const s = sessionData.stats;
       document.getElementById('rpt-date').innerText = sessionData.date;
       document.getElementById('rpt-sup-name').innerText = sessionData.supervisor;
-      document.getElementById('rpt-eng-name').innerText = s.eng;
       document.getElementById('rpt-mp').innerText = s.mp;
       document.getElementById('rpt-mh').innerText = s.mh;
       document.getElementById('rpt-ere').innerText = s.ere.toFixed(2);
       document.getElementById('rpt-dis').innerText = s.dis.toFixed(2);
       document.getElementById('rpt-eqv').innerText = s.eqv.toFixed(2);
       document.getElementById('rpt-prod').innerText = s.prod;
+
       const body = document.getElementById('rpt-table-body');
-      body.innerHTML = sessionData.entries.map((e, i) => `<tr><td>${i+1}</td><td>${e.sheetNo}</td><td>${e.date}</td><td>${e.tagNo}</td><td>${e.area}</td><td>${e.dept}</td><td>${e.jobType}</td><td>${e.workLoc}</td><td>${e.scafType}</td><td>${e.elev}</td><td>${sessionData.supervisor}</td><td>${s.eng}</td><td>${e.l}</td><td>${e.w}</td><td>${e.h}</td><td>${e.nos}</td><td>${e.vol.toFixed(2)}</td></tr>`).join('');
+      body.innerHTML = sessionData.entries.map((e, i) => `
+        <tr>
+          <td>${i+1}</td><td>${e.sheetNo}</td><td>${e.date}</td><td>${e.tagNo}</td>
+          <td>${e.area}</td><td>${e.dept}</td><td>${e.jobType}</td><td>${e.workLoc}</td>
+          <td>${e.scafType}</td><td>${e.elev}</td><td>${sessionData.supervisor}</td><td>${s.eng}</td>
+          <td>${e.l}</td><td>${e.w}</td><td>${e.h}</td><td>${e.nos}</td><td>${e.vol.toFixed(2)}</td>
+        </tr>
+      `).join('');
+
       const el = document.getElementById('report-container');
       el.style.display = 'block';
       const canvas = await html2canvas(el, { scale: 2 });
