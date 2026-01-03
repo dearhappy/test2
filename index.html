@@ -28,7 +28,7 @@
       font-family: Arial, sans-serif;
     }
 
-    /* HEADER GRID - 3 COLUMNS (Removed Productivity/Manpower) */
+    /* HEADER GRID - 3 COLUMNS (Clean Visual Report) */
     .report-header-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr); 
@@ -274,17 +274,16 @@
       const photoFile = document.getElementById('f-photo').files[0];
       const photoData = photoFile ? await toB64(photoFile) : null;
       
-      // FIX: Renamed keys to be full English names to ensure backend sync
       const entry = {
         sheetNo: document.getElementById('f-sheet').value || "-", 
         date: document.getElementById('f-date').value,
         tagNo: document.getElementById('f-tag').value || "-", 
         area: document.getElementById('f-area').value,
-        department: document.getElementById('f-dept').value, // Renamed from dept
+        department: document.getElementById('f-dept').value, 
         jobType: type, 
-        workLocation: document.getElementById('f-location').value || "-", // Renamed from workLoc
-        scaffoldingType: document.getElementById('f-scaffold').value, // Renamed from scafType
-        elevation: document.getElementById('f-elevation').value, // Renamed from elev
+        workLocation: document.getElementById('f-location').value || "-", 
+        scaffoldingType: document.getElementById('f-scaffold').value, 
+        elevation: document.getElementById('f-elevation').value, 
         l: document.getElementById('f-l').value || "-", 
         w: document.getElementById('f-w').value || "-",
         h: document.getElementById('f-h').value || "-", 
@@ -323,7 +322,6 @@
       const ere = sessionData.entries.filter(e => e.jobType === "Erection").reduce((a, b) => a + b.vol, 0);
       const dis = sessionData.entries.filter(e => e.jobType === "Dismantling").reduce((a, b) => a + b.vol, 0);
       
-      // Calculated for stats, but won't be shown on image
       const mh = mp * 12; 
       const eqv = ere + (dis / 2); 
       const prod = mh > 0 ? (eqv / mh).toFixed(3) : 0;
@@ -376,9 +374,10 @@
       el.style.display = 'none';
     }
 
+    // RESTORED FULL TEXT REPORT
     function getSummary() {
       const s = sessionData.stats;
-      return `*SCAFFOLDING REPORT*\nDATE: ${sessionData.date}\nSUPERVISOR: ${sessionData.supervisor}\nERECTION: ${s.ere.toFixed(2)} m³\nDISMANTLING: ${s.dis.toFixed(2)} m³\nEQV VOLUME: ${s.eqv.toFixed(2)} m³`;
+      return `*SCAFFOLDING REPORT*\nDATE: ${sessionData.date}\nSUPERVISOR: ${sessionData.supervisor}\nMANPOWER: ${s.mp}\nMANHOURS: ${s.mh}\nERECTION: ${s.ere.toFixed(2)} m³\nDISMANTLING: ${s.dis.toFixed(2)} m³\nEQV VOLUME: ${s.eqv.toFixed(2)} m³\nPRODUCTIVITY: ${s.prod}`;
     }
 
     function copyWhatsAppText() { navigator.clipboard.writeText(getSummary()); alert("Summary copied!"); }
