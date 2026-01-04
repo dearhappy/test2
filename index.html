@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Scaffolding Training & Quiz</title>
+    <title>Scaffolding Hub</title>
     <style>
         /* --- GLOBAL STYLES --- */
         body { font-family: -apple-system, system-ui, sans-serif; background-color: #f4f6f8; margin: 0; padding: 10px; color: #333; }
@@ -14,11 +14,16 @@
         /* --- MENU SCREEN --- */
         #menuScreen { display: grid; gap: 12px; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
         .menu-btn {
-            background: white; padding: 18px; border-radius: 10px; text-align: center;
-            font-weight: 600; color: #2c3e50; box-shadow: 0 3px 5px rgba(0,0,0,0.05);
-            cursor: pointer; transition: transform 0.1s; border: 1px solid #eee;
+            background: white; padding: 15px; border-radius: 10px; text-align: center;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.05); cursor: pointer; 
+            transition: transform 0.1s; border: 1px solid #eee;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .menu-btn:active { transform: scale(0.98); background-color: #eef2f7; }
+        
+        .btn-eng { font-weight: 700; color: #2c3e50; font-size: 1rem; margin-bottom: 2px; }
+        .btn-hin { font-weight: 400; color: #7f8c8d; font-size: 0.85rem; }
+
         .btn-quiz { border-left: 5px solid #e67e22; } /* Orange stripe for quizzes */
         .btn-train { border-left: 5px solid #3498db; } /* Blue stripe for training */
 
@@ -27,13 +32,14 @@
         .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
         .back-btn { background: #95a5a6; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
 
-        /* --- GALLERY STYLES (For Training) --- */
-        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        /* --- GALLERY GRID --- */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
         .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; }
         .card img { width: 100%; height: 100px; object-fit: cover; background: #eee; }
-        .card-title { padding: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; }
+        .card-title { padding: 8px; font-size: 0.75rem; font-weight: bold; text-align: center; }
 
-        /* --- QUIZ STYLES (For Quizzes) --- */
+        /* --- QUIZ STYLES --- */
+        .quiz-info { background: #fff3cd; color: #856404; padding: 10px; border-radius: 8px; margin-bottom: 15px; text-align: center; font-size: 0.9rem; }
         .quiz-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .q-number { font-size: 0.8rem; color: #888; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
         .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
@@ -44,17 +50,43 @@
             border-radius: 8px; text-align: left; cursor: pointer; font-size: 0.95rem;
             transition: 0.2s;
         }
-        .opt-btn:hover { background-color: #f9f9f9; }
-        
-        /* Feedback Colors */
         .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; }
         .wrong { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
         
-        /* --- MODAL (For Training Details) --- */
+        /* --- MODAL (POPUP) --- */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
-        .modal-content { background: white; width: 90%; max-width: 500px; max-height: 90vh; border-radius: 12px; overflow-y: auto; padding: 20px; position: relative; }
-        .close-icon { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #555; }
-        .m-img { width: 100%; border-radius: 8px; margin-bottom: 15px; }
+        .modal-content { 
+            background: white; width: 95%; max-width: 500px; height: 85vh; 
+            border-radius: 12px; position: relative; display: flex; flex-direction: column;
+            overflow: hidden; 
+        }
+
+        .modal-body-scroll { padding: 15px; overflow-y: auto; flex-grow: 1; -webkit-overflow-scrolling: touch; }
+        
+        /* Navigation Arrows */
+        .nav-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.9); border: none; width: 40px; height: 40px;
+            border-radius: 50%; font-size: 22px; cursor: pointer; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .nav-prev { left: 10px; } .nav-next { right: 10px; }
+        .nav-btn:hover { background: white; }
+
+        .close-icon { position: absolute; top: 10px; right: 10px; z-index: 20; background: rgba(255,255,255,0.8); width: 30px; height: 30px; text-align: center; line-height: 28px; border-radius: 50%; font-size: 20px; cursor: pointer; }
+
+        /* Media & Text */
+        #m-media-container { width: 100%; background: #000; border-radius: 8px; overflow: hidden; margin-bottom: 15px; min-height: 200px; display:flex; align-items:center; justify-content:center;}
+        #m-media-container img { width: 100%; height: auto; display: block; }
+        #m-media-container iframe, #m-media-container video { width: 100%; aspect-ratio: 16/9; border: none; }
+        
+        /* Slide Animation */
+        .slide-in { animation: slideInEffect 0.3s ease-out; }
+        @keyframes slideInEffect {
+            from { opacity: 0; transform: translateX(15px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
     </style>
 </head>
 <body>
@@ -71,56 +103,75 @@
     <div id="galleryScreen" class="screen">
         <div class="top-bar">
             <button class="back-btn" onclick="showMenu()">← Back</button>
-            <h3 id="galleryTitle" style="margin:0;">Training</h3>
+            <div style="text-align:right;">
+                <div id="galleryTitleEng" style="font-weight:bold; font-size:0.9rem;"></div>
+                <div id="galleryTitleHin" style="font-size:0.8rem; color:#666;"></div>
+            </div>
         </div>
-        <input type="text" id="searchGallery" placeholder="Search..." onkeyup="filterGallery()" style="width:100%; padding:10px; margin-bottom:15px; border-radius:20px; border:1px solid #ccc;">
+        <input type="text" id="searchGallery" placeholder="Search / खोजें..." onkeyup="filterGallery()" style="width:100%; padding:12px; margin-bottom:15px; border-radius:20px; border:1px solid #ccc; outline:none; box-sizing:border-box;">
         <div id="galleryGrid" class="gallery-grid"></div>
     </div>
 
     <div id="quizScreen" class="screen">
         <div class="top-bar">
             <button class="back-btn" onclick="showMenu()">← Exit Quiz</button>
-            <h3 id="quizTitle" style="margin:0;">Quiz</h3>
+            <div style="text-align:right;">
+                <div id="quizTitleEng" style="font-weight:bold; font-size:0.9rem;"></div>
+                <div id="quizTitleHin" style="font-size:0.8rem; color:#666;"></div>
+            </div>
         </div>
+        <div class="quiz-info">Random 20 Questions / यादृच्छिक 20 प्रश्न</div>
         <div id="quizContainer"></div>
     </div>
 
-    <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal')this.style.display='none'">
+    <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal') doClose()">
         <div class="modal-content">
-            <span class="close-icon" onclick="document.getElementById('modal').style.display='none'">&times;</span>
-            <div id="modalBody"></div>
+            <span class="close-icon" onclick="doClose()">&times;</span>
+            
+            <button class="nav-btn nav-prev" onclick="navigate(-1)">❮</button>
+            <button class="nav-btn nav-next" onclick="navigate(1)">❯</button>
+
+            <div class="modal-body-scroll" id="modalBodyScroll">
+                <div id="animContainer"> <div id="m-media-container"></div>
+                    <h2 id="m-title" style="margin: 0 0 5px 0; font-size: 1.3rem;"></h2>
+                    <span id="m-status" style="background:#6c757d; color:white; padding:3px 8px; border-radius:4px; font-size:0.7rem; font-weight:bold;"></span>
+                    <p style="margin: 5px 0; font-size: 0.9rem;"><strong>ID:</strong> <span id="m-id"></span></p>
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+                    <p id="m-specs" style="white-space: pre-wrap; color: #444; line-height: 1.5;"></p>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        // *** PASTE YOUR DEPLOYED WEB APP URL HERE ***
-        const API_URL = 'https://script.google.com/macros/s/AKfycbzeljdxGG8RBZ9L8hucmh9AEhw6ZwdtFcUYaj9umEoI_-m583bSwoOLkSmAN-3rRORomA/exec';
+        // *** PASTE YOUR DEPLOYED GOOGLE SCRIPT WEB APP URL HERE ***
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec';
         
-        // Define Menu Structure matches Google Sheet Tab Names
+        // CONFIG: English Name, Hindi Name, Type
         const MENU_ITEMS = [
-            { name: 'EQUIPMENTS TRAINING', type: 'train' },
-            { name: 'CUPLOK SCAFFOLDING TRAINING', type: 'train' },
-            { name: 'TUBE AND FITTINGS TRAINING', type: 'train' },
-            { name: 'SCAFFOLDER TRAINING', type: 'train' },
-            { name: 'SCAFFOLDING FOREMAN TRAINING', type: 'train' },
-            { name: 'SCAFFOLDING SUPERVISOR TRAINING', type: 'train' },
-            { name: 'QUIZ FOR SCAFFOLDER', type: 'quiz' },
-            { name: 'QUIZ FOR FOREMAN', type: 'quiz' },
-            { name: 'QUIZ FOR SUPERVISOR', type: 'quiz' }
+            { id: 'EQUIPMENTS TRAINING', hin: 'उपकरण प्रशिक्षण', type: 'train' },
+            { id: 'CUPLOK SCAFFOLDING TRAINING', hin: 'कपलोक मचान प्रशिक्षण', type: 'train' },
+            { id: 'TUBE AND FITTINGS TRAINING', hin: 'ट्यूब और फिटिंग प्रशिक्षण', type: 'train' },
+            { id: 'SCAFFOLDER TRAINING', hin: 'मचान प्रशिक्षण (Scaffolder)', type: 'train' },
+            { id: 'SCAFFOLDING FOREMAN TRAINING', hin: 'फोरमैन प्रशिक्षण', type: 'train' },
+            { id: 'SCAFFOLDING SUPERVISOR TRAINING', hin: 'पर्यवेक्षक प्रशिक्षण', type: 'train' },
+            { id: 'QUIZ FOR SCAFFOLDER', hin: 'प्रश्नोत्तरी (Scaffolder)', type: 'quiz' },
+            { id: 'QUIZ FOR FOREMAN', hin: 'प्रश्नोत्तरी (Foreman)', type: 'quiz' },
+            { id: 'QUIZ FOR SUPERVISOR', hin: 'प्रश्नोत्तरी (Supervisor)', type: 'quiz' }
         ];
 
         let fullData = {};
-        let currentData = [];
+        let currentGalleryItems = []; // Contains currently filtered items for navigation
+        let currentIndex = -1;
 
-        // INITIALIZE
+        // INIT
         async function init() {
             try {
                 const res = await fetch(API_URL);
                 fullData = await res.json();
                 renderMenu();
             } catch (err) {
-                document.getElementById('menuScreen').innerHTML = '<div style="color:red; text-align:center">Error loading data. Check Web App URL.</div>';
-                console.error(err);
+                document.getElementById('menuScreen').innerHTML = '<div style="color:red; text-align:center; padding:20px;">Error loading data. Check Internet or URL.</div>';
             }
         }
 
@@ -130,10 +181,10 @@
             
             MENU_ITEMS.forEach(item => {
                 const btn = document.createElement('div');
-                // Add color stripe based on type
                 btn.className = `menu-btn ${item.type === 'quiz' ? 'btn-quiz' : 'btn-train'}`;
-                btn.innerText = item.name;
-                btn.onclick = () => openSection(item.name, item.type);
+                // Bilingual Button
+                btn.innerHTML = `<span class="btn-eng">${item.id}</span><span class="btn-hin">${item.hin}</span>`;
+                btn.onclick = () => openSection(item);
                 container.appendChild(btn);
             });
         }
@@ -143,37 +194,52 @@
             document.getElementById('menuScreen').style.display = 'grid';
         }
 
-        function openSection(name, type) {
-            currentData = fullData[name] || []; // Get data for specific tab
+        function openSection(menuItem) {
+            const rawData = fullData[menuItem.id] || [];
             
             document.getElementById('menuScreen').style.display = 'none';
-            
-            if (type === 'train') {
+
+            if (menuItem.type === 'train') {
+                // Setup Gallery
                 document.getElementById('galleryScreen').style.display = 'block';
-                document.getElementById('galleryTitle').innerText = name;
-                renderGallery(currentData);
+                document.getElementById('galleryTitleEng').innerText = menuItem.id;
+                document.getElementById('galleryTitleHin').innerText = menuItem.hin;
+                document.getElementById('searchGallery').value = ''; // Reset search
+                
+                // For training, we start with ALL data in this category
+                currentGalleryItems = rawData; 
+                renderGallery(currentGalleryItems);
             } else {
+                // Setup Quiz
                 document.getElementById('quizScreen').style.display = 'block';
-                document.getElementById('quizTitle').innerText = name;
-                renderQuiz(currentData);
+                document.getElementById('quizTitleEng').innerText = menuItem.id;
+                document.getElementById('quizTitleHin').innerText = menuItem.hin;
+                
+                // SHUFFLE & SLICE 20
+                const shuffled = [...rawData].sort(() => 0.5 - Math.random());
+                const selectedQuestions = shuffled.slice(0, 20);
+                renderQuiz(selectedQuestions);
             }
         }
 
-        // --- TRAINING GALLERY LOGIC ---
+        // --- TRAINING LOGIC ---
         function renderGallery(items) {
             const grid = document.getElementById('galleryGrid');
             grid.innerHTML = '';
             
-            if(items.length === 0) { grid.innerHTML = '<p>No items found.</p>'; return; }
+            if(items.length === 0) { grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#777;">No items found.</p>'; return; }
 
-            items.forEach(item => {
+            items.forEach((item, idx) => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => showModal(item);
+                // Pass the index relative to the CURRENT filtered list
+                card.onclick = () => openModal(idx);
                 
-                const imgUrl = item['Image URL'] || 'https://via.placeholder.com/150';
+                const imgUrl = item['Image URL'] || '';
+                const isVid = imgUrl.includes('youtu') || imgUrl.match(/\.(mp4|webm)$/i);
+                
                 card.innerHTML = `
-                    <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
+                    <img src="${isVid ? 'https://via.placeholder.com/150/000/fff?text=VIDEO' : imgUrl}" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
                     <div class="card-title">${item.Title || 'No Title'}</div>
                 `;
                 grid.appendChild(card);
@@ -182,82 +248,118 @@
 
         function filterGallery() {
             const query = document.getElementById('searchGallery').value.toLowerCase();
-            const filtered = currentData.filter(item => 
-                (item.Title && item.Title.toLowerCase().includes(query))
+            const categoryName = document.getElementById('galleryTitleEng').innerText;
+            const allCatItems = fullData[categoryName] || [];
+
+            // Update GLOBAL filtered list
+            currentGalleryItems = allCatItems.filter(item => 
+                (item.Title && item.Title.toLowerCase().includes(query)) ||
+                (item.ID && item.ID.toString().toLowerCase().includes(query))
             );
-            renderGallery(filtered);
+            renderGallery(currentGalleryItems);
         }
 
-        function showModal(item) {
-            const body = document.getElementById('modalBody');
-            const isVid = (item['Image URL'] || '').includes('youtu');
-            
-            let mediaHtml = '';
-            if (isVid) {
-                // Simplified video check for brevity
-                mediaHtml = `<iframe style="width:100%; height:250px; border:none" src="${item['Image URL']}"></iframe>`;
-            } else {
-                mediaHtml = `<img class="m-img" src="${item['Image URL']}">`;
-            }
-
-            body.innerHTML = `
-                ${mediaHtml}
-                <h2>${item.Title}</h2>
-                <span style="background:#6c757d; color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem">${item.Status || ''}</span>
-                <p><strong>ID:</strong> ${item.ID}</p>
-                <hr>
-                <p style="white-space: pre-wrap;">${item.Specs}</p>
-            `;
+        // --- MODAL & NAVIGATION ---
+        function openModal(index) {
+            currentIndex = index;
+            updateModalContent();
             document.getElementById('modal').style.display = 'flex';
+        }
+
+        function updateModalContent() {
+            if (currentIndex < 0 || currentIndex >= currentGalleryItems.length) return;
+            
+            const item = currentGalleryItems[currentIndex];
+            const container = document.getElementById('animContainer');
+            
+            // 1. Reset Animation
+            container.classList.remove('slide-in');
+            void container.offsetWidth; // Trigger reflow
+            container.classList.add('slide-in');
+
+            // 2. Auto Scroll to Top
+            document.getElementById('modalBodyScroll').scrollTop = 0;
+
+            // 3. Update Text
+            document.getElementById('m-title').innerText = item.Title || '';
+            document.getElementById('m-id').innerText = item.ID || '';
+            document.getElementById('m-status').innerText = item.Status || 'N/A';
+            document.getElementById('m-specs').innerText = item.Specs || '';
+
+            // 4. Update Media
+            const viewer = document.getElementById('m-media-container');
+            const url = item['Image URL'] || '';
+
+            if (url.includes('youtu')) {
+                let vidId = url.split('v=')[1] || url.split('/').pop();
+                viewer.innerHTML = `<iframe src="https://www.youtube.com/embed/${vidId}?autoplay=1" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            } else if (url.match(/\.(mp4|webm)$/i)) {
+                viewer.innerHTML = `<video controls autoplay><source src="${url}" type="video/mp4"></video>`;
+            } else {
+                viewer.innerHTML = `<img src="${url}">`;
+            }
+        }
+
+        function navigate(step) {
+            const newIndex = currentIndex + step;
+            if (newIndex >= 0 && newIndex < currentGalleryItems.length) {
+                currentIndex = newIndex;
+                updateModalContent();
+            }
+        }
+
+        function doClose() {
+            document.getElementById('m-media-container').innerHTML = ''; // Stop video
+            document.getElementById('modal').style.display = 'none';
         }
 
         // --- QUIZ LOGIC ---
         function renderQuiz(questions) {
             const container = document.getElementById('quizContainer');
             container.innerHTML = '';
-
-            if(questions.length === 0) { container.innerHTML = '<p>No questions in this quiz yet.</p>'; return; }
+            
+            if(questions.length === 0) { container.innerHTML = '<p>No questions available.</p>'; return; }
 
             questions.forEach((q, index) => {
                 const card = document.createElement('div');
                 card.className = 'quiz-card';
                 
-                const serial = q['Serial No.'] || (index + 1);
+                // Shuffle Options visually but keep track of answer
+                let opts = [
+                    { txt: q['Option 1'], id: 1 }, 
+                    { txt: q['Option 2'], id: 2 }, 
+                    { txt: q['Option 3'], id: 3 }, 
+                    { txt: q['Option 4'], id: 4 }
+                ].filter(o => o.txt); // Remove empty options
                 
-                // Create Option Buttons
-                let optionsHtml = '';
-                const options = [q['Option 1'], q['Option 2'], q['Option 3'], q['Option 4']].filter(o => o); // Remove empty
-                
-                options.forEach(opt => {
+                // Render buttons
+                let btnsHtml = '';
+                opts.forEach(opt => {
                     // Escape quotes for safety
-                    const safeOpt = opt.replace(/"/g, '&quot;');
+                    const safeTxt = opt.txt.replace(/"/g, '&quot;');
                     const safeAns = (q['Correct Answer'] || '').replace(/"/g, '&quot;');
-                    
-                    optionsHtml += `<button class="opt-btn" onclick="checkAnswer(this, '${safeOpt}', '${safeAns}')">${opt}</button>`;
+                    btnsHtml += `<button class="opt-btn" onclick="checkAnswer(this, '${safeTxt}', '${safeAns}')">${opt.txt}</button>`;
                 });
 
                 card.innerHTML = `
-                    <div class="q-number">Question ${serial}</div>
+                    <div class="q-number">Question ${index + 1}</div>
                     <div class="q-text">${q.Question}</div>
-                    <div class="options-grid">${optionsHtml}</div>
+                    <div class="options-grid">${btnsHtml}</div>
                 `;
                 container.appendChild(card);
             });
         }
 
         function checkAnswer(btn, selected, correct) {
-            // Disable all buttons in this card
             const parent = btn.parentElement;
             const allBtns = parent.querySelectorAll('.opt-btn');
-            allBtns.forEach(b => b.disabled = true);
+            allBtns.forEach(b => b.disabled = true); // Lock all
 
-            // Check correctness
-            // We trim() to avoid "A " vs "A" errors
             if (selected.trim().toLowerCase() === correct.trim().toLowerCase()) {
                 btn.classList.add('correct');
             } else {
                 btn.classList.add('wrong');
-                // Highlight the correct one automatically
+                // Auto-highlight the right answer
                 allBtns.forEach(b => {
                     if (b.innerText.trim().toLowerCase() === correct.trim().toLowerCase()) {
                         b.classList.add('correct');
@@ -266,7 +368,6 @@
             }
         }
 
-        // Start
         init();
     </script>
 </body>
