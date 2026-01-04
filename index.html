@@ -1,390 +1,270 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SCAFFOLDING REPORT SYSTEM</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Basics of Scaffolding</title>
+    <style>
+        body { 
+            font-family: -apple-system, system-ui, sans-serif; 
+            background-color: #f0f2f5; padding: 10px; margin: 0; touch-action: manipulation;
+        }
+        
+        .header-area { text-align: center; margin: 15px 0; }
+        h1 { color: #2c3e50; font-size: 1.6rem; margin: 0; }
+        .author { color: #7f8c8d; font-size: 0.85rem; margin-top: 4px; }
 
-  <style>
-    body { background-color: #f3f4f6; font-family: 'Segoe UI', sans-serif; }
-    .card { background: white; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
-    .loader { border-top-color: #3b82f6; animation: spinner 1.5s linear infinite; }
-    @keyframes spinner { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    
-    /* REPORT CONTAINER - A4 LANDSCAPE (297mm x 210mm) */
-    #report-container {
-      width: 297mm;
-      min-height: 210mm;
-      background: white;
-      padding: 10mm;
-      display: none; 
-      position: absolute; 
-      top: 0; left: 0; z-index: -1;
-      color: #000;
-      font-family: Arial, sans-serif;
-    }
+        .controls-container { max-width: 600px; margin: 0 auto 20px; padding: 0 10px; }
+        #searchInput {
+            width: 100%; padding: 12px; border-radius: 25px; border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 1rem; outline: none; box-sizing: border-box;
+            margin-bottom: 15px;
+        }
 
-    /* HEADER GRID - 3 COLUMNS (Clean Visual Report) */
-    .report-header-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr); 
-      border: 1px solid #000;
-      margin-bottom: 15px;
-    }
-    .header-cell {
-      border: 1px solid #000;
-      padding: 8px;
-      font-size: 11px;
-    }
-    .header-label { font-weight: bold; display: block; margin-bottom: 2px; color: #333; }
-    .header-value { font-weight: bold; font-size: 13px; color: #000; }
+        .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
+        .category-scroll::-webkit-scrollbar { display: none; }
+        .cat-tab {
+            white-space: nowrap; padding: 8px 16px; background: #fff;
+            border: 1px solid #ddd; border-radius: 20px; font-size: 0.85rem;
+            cursor: pointer; transition: 0.2s;
+        }
+        .cat-tab.active { background: #2c3e50; color: white; border-color: #2c3e50; }
 
-    /* TABLE STYLING */
-    .report-table { width: 100%; border-collapse: collapse; margin-top: 10px; table-layout: fixed; }
-    .report-table th, .report-table td { 
-      border: 1px solid #000; 
-      padding: 5px 2px; 
-      text-align: center; 
-      font-size: 10px; 
-      word-wrap: break-word; 
-    }
-    .tbl-head { background-color: #e5e7eb; font-weight: bold; text-transform: uppercase; }
+        .gallery {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 10px; max-width: 1200px; margin: 0 auto; padding-bottom: 30px;
+        }
+        .card {
+            background: white; border-radius: 8px; overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; position: relative;
+        }
+        .thumb-container {
+            width: 100%; height: 100px; background: #e9ecef;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .thumb-container img { width: 100%; height: 100%; object-fit: cover; }
+        .video-indicator {
+            position: absolute; top: 35px; left: 40px; background: rgba(0,0,0,0.7);
+            color: white; border-radius: 50%; padding: 10px; font-size: 12px; z-index: 2;
+        }
+        .card-title { padding: 5px; font-size: 0.75rem; font-weight: bold; text-align: center; }
 
-    /* FOOTER */
-    .footer-section { margin-top: 50px; display: flex; justify-content: space-between; padding: 0 50px; }
-    .sign-box { text-align: center; width: 200px; border-top: 1px solid #000; padding-top: 5px; font-weight: bold; font-size: 12px; }
-  </style>
+        /* --- MODAL --- */
+        .modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
+        }
+        .modal-content {
+            background: white; width: 95%; max-width: 600px; border-radius: 12px;
+            max-height: 90vh; display: flex; flex-direction: column; position: relative;
+            overflow: hidden;
+        }
+
+        /* Swipe/Nav Animation */
+        .slide-effect { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-body-scroll { padding: 15px; overflow-y: auto; flex-grow: 1; }
+        
+        .nav-btn {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            background: rgba(255,255,255,0.9); border: none; width: 35px; height: 35px;
+            border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10;
+            display: flex; align-items: center; justify-content: center;
+        }
+        @media (max-width: 600px) { .nav-btn { display: none; } } /* Hide buttons on mobile to use swipe */
+        
+        .nav-prev { left: 8px; }
+        .nav-next { right: 8px; }
+
+        .item-counter {
+            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5);
+            color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; z-index: 11;
+        }
+
+        .media-container { width: 100%; margin-bottom: 15px; background: #000; border-radius: 8px; overflow: hidden; }
+        .media-container img { width: 100%; height: auto; display: block; margin: 0 auto; }
+        .media-container video, .media-container iframe { width: 100%; aspect-ratio: 16 / 9; border: none; }
+
+        .close-btn-top { position: absolute; top: 10px; right: 10px; color: #333; font-size: 28px; cursor: pointer; z-index: 11; background: rgba(255,255,255,0.8); border-radius: 50%; width: 32px; height: 32px; text-align: center; line-height: 30px; }
+        .btn-close-bottom { display: block; width: 100%; padding: 12px; margin-top: 20px; background-color: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
+
+        .modal-title { font-size: 1.2rem; margin: 15px 0 5px 0; }
+        .label { font-weight: bold; font-size: 0.8rem; color: #666; }
+        .spec-text { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 5px; }
+        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; color: white; font-weight: bold; background: #6c757d; }
+    </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4">
+<body>
 
-  <div id="app" class="w-full max-w-md">
-    <div id="loading" class="text-center py-10">
-      <div class="loader rounded-full border-4 border-t-4 border-gray-200 h-12 w-12 mb-4 mx-auto"></div>
-      <h2 class="text-xl font-semibold text-gray-700">Loading System...</h2>
+    <div class="header-area">
+        <h1>Basics of Scaffolding</h1>
+        <div class="author">by Gurwinder Singh</div>
     </div>
 
-    <div id="login-screen" class="card p-6 hidden">
-      <h2 class="text-2xl font-bold text-center text-blue-800 mb-6">Supervisor Login</h2>
-      <div class="space-y-4">
-        <select id="login-username" class="w-full rounded-md border p-3 bg-gray-50"><option value="">Select Name</option></select>
-        <input type="password" id="login-passcode" class="w-full rounded-md border p-3 bg-gray-50" placeholder="Passcode">
-        <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-600 text-white p-3 rounded-lg font-bold">LOGIN</button>
-      </div>
+    <div class="controls-container">
+        <input type="text" id="searchInput" placeholder="Search name or ID..." onkeyup="handleFilters()">
+        <div id="categoryTabs" class="category-scroll"></div>
     </div>
 
-    <div id="form-screen" class="hidden">
-      <div class="card p-4 mb-4">
-        <div class="flex justify-between items-center mb-4">
-          <span class="text-xs font-bold text-gray-500" id="display-supervisor"></span>
-          <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded" id="entry-count">Entries: 0</span>
+    <div id="gallery" class="gallery"></div>
+
+    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
+        <div class="modal-content" id="swipeArea">
+            <div class="item-counter" id="m-counter"></div>
+            <span class="close-btn-top" onclick="doClose()">&times;</span>
+            
+            <button class="nav-btn nav-prev" onclick="navItem(-1)">❮</button>
+            <button class="nav-btn nav-next" onclick="navItem(1)">❯</button>
+
+            <div class="modal-body-scroll" id="modalBody">
+                <div id="media-viewer" class="media-container"></div>
+                <h2 id="m-title" class="modal-title"></h2>
+                <span id="m-status" class="status-badge"></span>
+                <p><span class="label">ID Reference:</span> <span id="m-id"></span></p>
+                <hr>
+                <span class="label">Specifications:</span>
+                <div id="m-specs" class="spec-text"></div>
+                <button class="btn-close-bottom" onclick="doClose()">Close Details</button>
+            </div>
         </div>
-        
-        <form id="job-form" class="space-y-3">
-          <div class="grid grid-cols-2 gap-2">
-            <div><label class="text-[10px] font-bold">DATE</label><input type="date" id="f-date" class="w-full border rounded p-2 text-sm"></div>
-            <div><label class="text-[10px] font-bold">SHEET NO</label><input type="text" id="f-sheet" class="w-full border rounded p-2 text-sm"></div>
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <select id="f-area" class="border rounded p-2 text-sm"><option value="">Select Area</option></select>
-            <select id="f-dept" class="border rounded p-2 text-sm"><option value="">Select Dept</option></select>
-          </div>
-          <select id="f-jobtype" class="w-full border rounded p-2 text-sm">
-            <option value="">Job Type</option>
-            <option value="Erection">Erection</option>
-            <option value="Dismantling">Dismantling</option>
-            <option value="Materials Shifting">Materials Shifting</option>
-            <option value="Unloading">Unloading</option>
-          </select>
-          <div class="grid grid-cols-2 gap-2">
-            <input type="text" id="f-tag" class="border rounded p-2 text-sm" placeholder="Tag No.">
-            <input type="text" id="f-location" class="border rounded p-2 text-sm" placeholder="Work Location">
-          </div>
-          <div class="grid grid-cols-2 gap-2">
-            <select id="f-scaffold" class="border rounded p-2 text-sm" onchange="updateElevationDropdown()">
-                <option value="">Scaffold Type</option>
-                <option value="Normal">Normal</option>
-                <option value="Hanging">Hanging</option>
-                <option value="Designed">Designed</option>
-            </select>
-            <select id="f-elevation" class="border rounded p-2 text-sm"><option value="">Elevation</option></select>
-          </div>
-          <div class="bg-gray-100 p-2 rounded grid grid-cols-4 gap-1">
-            <input type="number" id="f-l" placeholder="L" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-            <input type="number" id="f-w" placeholder="W" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-            <input type="number" id="f-h" placeholder="H" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-            <input type="number" id="f-nos" placeholder="Nos" class="border rounded p-1 text-center text-sm" oninput="calcVol()">
-          </div>
-          <div class="text-right text-xs font-bold text-blue-700">Volume: <span id="display-vol">0.00</span> m³</div>
-          <div>
-            <label class="text-[10px] font-bold">SCAFFOLD PHOTO</label>
-            <input type="file" id="f-photo" accept="image/*" class="w-full text-xs border p-1 rounded bg-white">
-          </div>
-          <div class="flex space-x-2 pt-2">
-             <button type="button" onclick="addEntry()" class="flex-1 bg-green-600 text-white py-3 rounded font-bold">ADD ENTRY</button>
-             <button type="button" onclick="goToFinalize()" class="flex-1 bg-blue-700 text-white py-3 rounded font-bold">FINISH</button>
-          </div>
-        </form>
-      </div>
-      <div id="entry-list" class="space-y-2 pb-10"></div>
     </div>
 
-    <div id="finalize-screen" class="hidden card p-6">
-       <h3 class="font-bold mb-4 border-b pb-2">Final Confirmation</h3>
-       <input type="text" id="final-eng-name" class="w-full border p-3 rounded mb-3" placeholder="AMNS Engineer Name">
-       <input type="number" id="final-manpower" class="w-full border p-3 rounded mb-4" placeholder="Total Manpower">
-       <button onclick="submitAll()" id="btn-submit-all" class="w-full bg-indigo-600 text-white p-4 rounded font-bold shadow-lg">SUBMIT & DOWNLOAD REPORT</button>
-    </div>
+    <script>
+        const API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec'; 
+        let allItems = [];
+        let filteredItems = [];
+        let currentIndex = -1;
+        let activeCategory = 'All';
 
-    <div id="success-screen" class="hidden card p-6 text-center">
-       <i class="fas fa-check-circle text-green-500 text-6xl mb-4"></i>
-       <h2 class="text-xl font-bold mb-4">Report Generated!</h2>
-       <button onclick="copyWhatsAppText()" class="w-full bg-blue-500 text-white p-3 rounded font-bold mb-2">COPY WHATSAPP TEXT</button>
-       <button onclick="shareWhatsApp()" class="w-full bg-green-500 text-white p-3 rounded font-bold mb-4">SHARE ON WHATSAPP</button>
-       <button onclick="location.reload()" class="text-gray-500 text-sm underline">Start New Session</button>
-    </div>
-  </div>
+        // SWIPE LOGIC VARIABLES
+        let touchstartX = 0;
+        let touchendX = 0;
 
-  <div id="report-container">
-    <div style="text-align: center; margin-bottom: 10px;">
-      <img src="https://i.imgur.com/1jXyC7f.png" alt="BrandSafway Logo" style="height: 50px; margin: 0 auto;">
-    </div>
-    <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid black; padding-bottom: 10px;">
-      <h1 style="margin:0; font-size: 24px; text-transform: uppercase;">Job Completion Report</h1>
-    </div>
-    
-    <div class="report-header-grid">
-        <div class="header-cell"><span class="header-label">DATE</span><span class="header-value" id="rpt-date"></span></div>
-        <div class="header-cell"><span class="header-label">SUPERVISOR NAME</span><span class="header-value" id="rpt-sup-name"></span></div>
-        <div class="header-cell"><span class="header-label">AMNS ENGINEER</span><span class="header-value" id="rpt-eng-name"></span></div>
-        
-        <div class="header-cell"><span class="header-label">TOTAL ERECTION</span><span class="header-value" id="rpt-ere"></span> m³</div>
-        <div class="header-cell"><span class="header-label">TOTAL DISMANTLING</span><span class="header-value" id="rpt-dis"></span> m³</div>
-        <div class="header-cell"><span class="header-label">EQUIVALENT VOLUME</span><span class="header-value" id="rpt-eqv"></span> m³</div>
-    </div>
+        async function loadApp() {
+            try {
+                const res = await fetch(API_URL);
+                allItems = await res.json();
+                filteredItems = allItems;
+                createCategoryTabs();
+                render(filteredItems);
+                setupSwipe();
+            } catch(e) { console.error("Load failed", e); }
+        }
 
-    <table class="report-table">
-      <thead>
-        <tr class="tbl-head">
-          <th style="width:30px">SL</th>
-          <th style="width:50px">Sheet No</th>
-          <th style="width:60px">Date</th>
-          <th style="width:50px">Tag No</th>
-          <th style="width:60px">Area</th>
-          <th style="width:60px">Dept</th>
-          <th style="width:70px">Job Type</th>
-          <th style="width:80px">Work Location</th>
-          <th style="width:60px">Scaf Type</th>
-          <th style="width:50px">Elev</th>
-          <th style="width:70px">Sup Name</th>
-          <th style="width:70px">AMNS Eng</th>
-          <th style="width:30px">L</th>
-          <th style="width:30px">W</th>
-          <th style="width:30px">H</th>
-          <th style="width:30px">Nos</th>
-          <th style="width:50px">Volume</th>
-        </tr>
-      </thead>
-      <tbody id="rpt-table-body"></tbody>
-    </table>
+        function createCategoryTabs() {
+            const tabsContainer = document.getElementById('categoryTabs');
+            const categories = ['All', ...new Set(allItems.map(item => item.Category).filter(Boolean))];
+            tabsContainer.innerHTML = '';
+            categories.forEach(cat => {
+                const tab = document.createElement('div');
+                tab.className = `cat-tab ${cat === activeCategory ? 'active' : ''}`;
+                tab.innerText = cat;
+                tab.onclick = () => {
+                    activeCategory = cat;
+                    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+                    handleFilters();
+                };
+                tabsContainer.appendChild(tab);
+            });
+        }
 
-    <div class="footer-section">
-      <div class="sign-box">
-         <div style="height:40px;"></div>
-         <span>Supervisor Signature</span>
-      </div>
-      <div class="sign-box">
-         <div style="height:40px;"></div>
-         <span>AMNS Eng. Signature</span>
-      </div>
-    </div>
-  </div>
+        function handleFilters() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            filteredItems = allItems.filter(item => {
+                const matchesSearch = (item.Title?.toLowerCase().includes(query)) || (item.ID?.toString().toLowerCase().includes(query));
+                const matchesCategory = (activeCategory === 'All' || item.Category === activeCategory);
+                return matchesSearch && matchesCategory;
+            });
+            render(filteredItems);
+        }
 
-  <script>
-    const APP_URL = "https://script.google.com/macros/s/AKfycbxkzRv-FufgO4unbMAMmKrKQ36tdLttDa5UblizEq7p0uFs1fcUl3SKeVmeuPVdo7PfOg/exec";
-    let sessionData = { supervisor: '', entries: [], date: '', stats: {} };
+        function render(items) {
+            const container = document.getElementById('gallery');
+            container.innerHTML = ''; 
+            items.forEach((item, index) => {
+                const url = item['Image URL'] || '';
+                const isVid = isVideo(url);
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.onclick = () => openModal(index);
+                card.innerHTML = `
+                    <div class="thumb-container">
+                        ${isVid ? '<div class="video-indicator">▶</div>' : ''}
+                        <img src="${isVid ? 'https://via.placeholder.com/150/000/fff?text=VIDEO' : url}">
+                    </div>
+                    <div class="card-title">${item.Title}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
 
-    // DYNAMIC ELEVATION LOGIC
-    function updateElevationDropdown() {
-        const type = document.getElementById('f-scaffold').value;
-        const elevDrop = document.getElementById('f-elevation');
-        elevDrop.innerHTML = '<option value="">Elevation</option>';
-        
-        let options = [];
-        if (type === "Normal") options = ["0TO10", "10TO20", "20TO30", "30TO40", "40TO50"];
-        else if (type === "Hanging") options = ["0TO10", "10TO20", "ABOVE20"];
-        else if (type === "Designed") options = ["0TO45"];
+        function isVideo(url) {
+            if(!url) return false;
+            return url.includes('youtube.com') || url.includes('youtu.be') || url.match(/\.(mp4|webm|ogg)$/i);
+        }
 
-        options.forEach(opt => elevDrop.innerHTML += `<option value="${opt}">${opt}</option>`);
-    }
+        function openModal(index) {
+            currentIndex = index;
+            const item = filteredItems[currentIndex];
+            const viewer = document.getElementById('media-viewer');
+            const url = item['Image URL'] || '';
 
-    async function apiCall(action, payload = {}) {
-      const res = await fetch(APP_URL, { method: 'POST', body: JSON.stringify({ action, ...payload }) });
-      return await res.json();
-    }
+            const body = document.getElementById('modalBody');
+            body.classList.remove('slide-effect');
+            void body.offsetWidth;
+            body.classList.add('slide-effect');
 
-    window.onload = async function() {
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('f-date').value = today;
-      sessionData.date = today;
-      const data = await apiCall('getAppData');
-      if(data) {
-        fillDrop('login-username', data.users);
-        fillDrop('f-area', data.areas);
-        fillDrop('f-dept', data.departments);
-        document.getElementById('loading').classList.add('hidden');
-        document.getElementById('login-screen').classList.remove('hidden');
-      }
-    };
+            if (url.includes('youtube.com') || url.includes('youtu.be')) {
+                let vidId = url.split('v=')[1] || url.split('/').pop();
+                viewer.innerHTML = `<iframe id="vidPlayer" src="https://www.youtube.com/embed/${vidId}?autoplay=1" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
+            } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
+                viewer.innerHTML = `<video id="vidPlayer" controls autoplay><source src="${url}" type="video/mp4"></video>`;
+            } else {
+                viewer.innerHTML = `<img src="${url}" alt="Equipment">`;
+            }
 
-    function fillDrop(id, list) {
-      const el = document.getElementById(id);
-      list.forEach(i => el.innerHTML += `<option value="${i}">${i}</option>`);
-    }
+            document.getElementById('m-counter').innerText = `${currentIndex + 1} of ${filteredItems.length}`;
+            document.getElementById('m-title').innerText = item.Title || '';
+            document.getElementById('m-id').innerText = item.ID || '';
+            document.getElementById('m-status').innerText = item.Status || '';
+            document.getElementById('m-specs').innerText = item.Specs || '';
+            document.getElementById('modal').style.display = 'flex';
+            body.scrollTop = 0;
+        }
 
-    async function handleLogin() {
-      const user = document.getElementById('login-username').value;
-      const pass = document.getElementById('login-passcode').value;
-      const res = await apiCall('login', { username: user, passcode: pass });
-      if(res?.valid) {
-        sessionData.supervisor = user;
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('form-screen').classList.remove('hidden');
-        document.getElementById('display-supervisor').innerText = "Sup: " + user;
-      } else alert("Invalid Passcode");
-    }
+        function navItem(step) {
+            let newIndex = currentIndex + step;
+            if (newIndex >= 0 && newIndex < filteredItems.length) openModal(newIndex);
+        }
 
-    function calcVol() {
-      const l = parseFloat(document.getElementById('f-l').value);
-      const w = parseFloat(document.getElementById('f-w').value);
-      const h = parseFloat(document.getElementById('f-h').value);
-      const n = parseFloat(document.getElementById('f-nos').value);
-      const validDims = [l, w, h, n].filter(v => !isNaN(v) && v !== 0);
-      const v = validDims.length > 0 ? validDims.reduce((acc, val) => acc * val, 1) : 0;
-      document.getElementById('display-vol').innerText = v.toFixed(2);
-      return v;
-    }
+        // SWIPE FUNCTIONALITY
+        function setupSwipe() {
+            const swipeArea = document.getElementById('swipeArea');
+            swipeArea.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, false);
+            swipeArea.addEventListener('touchend', e => { 
+                touchendX = e.changedTouches[0].screenX;
+                handleGesture();
+            }, false);
+        }
 
-    function toB64(file) { return new Promise((res) => { const r = new FileReader(); r.readAsDataURL(file); r.onload = () => res(r.result); }); }
+        function handleGesture() {
+            if (touchendX < touchstartX - 50) navItem(1); // Swipe Left -> Next
+            if (touchendX > touchstartX + 50) navItem(-1); // Swipe Right -> Prev
+        }
 
-    async function addEntry() {
-      const type = document.getElementById('f-jobtype').value;
-      if(!type) return alert("Select Job Type");
-      
-      const photoFile = document.getElementById('f-photo').files[0];
-      const photoData = photoFile ? await toB64(photoFile) : null;
-      
-      const entry = {
-        sheetNo: document.getElementById('f-sheet').value || "-", 
-        date: document.getElementById('f-date').value,
-        tagNo: document.getElementById('f-tag').value || "-", 
-        area: document.getElementById('f-area').value,
-        department: document.getElementById('f-dept').value, 
-        jobType: type, 
-        workLocation: document.getElementById('f-location').value || "-", 
-        scaffoldingType: document.getElementById('f-scaffold').value, 
-        elevation: document.getElementById('f-elevation').value, 
-        l: document.getElementById('f-l').value || "-", 
-        w: document.getElementById('f-w').value || "-",
-        h: document.getElementById('f-h').value || "-", 
-        nos: document.getElementById('f-nos').value || "-",
-        vol: calcVol(), 
-        image: photoData
-      };
-      
-      sessionData.entries.push(entry);
-      document.getElementById('entry-count').innerText = "Entries: " + sessionData.entries.length;
-      renderMiniList();
-      document.getElementById('job-form').reset();
-      document.getElementById('f-date').value = sessionData.date;
-      document.getElementById('display-vol').innerText = "0.00";
-    }
+        function doClose() {
+            document.getElementById('media-viewer').innerHTML = ''; 
+            document.getElementById('modal').style.display = 'none';
+        }
 
-    function renderMiniList() {
-      const list = document.getElementById('entry-list');
-      list.innerHTML = sessionData.entries.map((e, i) => `<div class="bg-white p-2 border rounded flex justify-between text-xs"><span>${e.jobType}: ${e.vol.toFixed(2)}m³</span><button type="button" onclick="sessionData.entries.splice(${i},1);renderMiniList();" class="text-red-500">Remove</button></div>`).join('');
-    }
+        function closeModal(e) { if(e.target.id === 'modal') doClose(); }
 
-    function goToFinalize() {
-      if(!sessionData.entries.length) return alert("No entries added!");
-      document.getElementById('form-screen').classList.add('hidden');
-      document.getElementById('finalize-screen').classList.remove('hidden');
-    }
-
-    async function submitAll() {
-      const mp = parseFloat(document.getElementById('final-manpower').value);
-      const eng = document.getElementById('final-eng-name').value;
-      if(!mp || !eng) return alert("Enter Manpower and Engineer Name");
-      
-      const btn = document.getElementById('btn-submit-all');
-      btn.innerText = "Processing..."; btn.disabled = true;
-
-      const ere = sessionData.entries.filter(e => e.jobType === "Erection").reduce((a, b) => a + b.vol, 0);
-      const dis = sessionData.entries.filter(e => e.jobType === "Dismantling").reduce((a, b) => a + b.vol, 0);
-      
-      const mh = mp * 12; 
-      const eqv = ere + (dis / 2); 
-      const prod = mh > 0 ? (eqv / mh).toFixed(3) : 0;
-      
-      sessionData.stats = { mp, eng, mh, ere, dis, eqv, prod };
-
-      const res = await apiCall('submit', { payload: { 
-        supervisor: sessionData.supervisor, 
-        global: { amnsEngName: eng, totalManpower: mp, date: sessionData.date }, 
-        entries: sessionData.entries 
-      }});
-
-      if(res.success) { 
-        await drawReport(); 
-        document.getElementById('finalize-screen').classList.add('hidden'); 
-        document.getElementById('success-screen').classList.remove('hidden'); 
-      } else { 
-        alert("Submission Failed"); 
-        btn.innerText = "SUBMIT & DOWNLOAD REPORT"; btn.disabled = false; 
-      }
-    }
-
-    async function drawReport() {
-      const s = sessionData.stats;
-      document.getElementById('rpt-date').innerText = sessionData.date;
-      document.getElementById('rpt-sup-name').innerText = sessionData.supervisor;
-      document.getElementById('rpt-eng-name').innerText = s.eng;
-      
-      document.getElementById('rpt-ere').innerText = s.ere.toFixed(2);
-      document.getElementById('rpt-dis').innerText = s.dis.toFixed(2);
-      document.getElementById('rpt-eqv').innerText = s.eqv.toFixed(2);
-
-      const body = document.getElementById('rpt-table-body');
-      body.innerHTML = sessionData.entries.map((e, i) => `
-        <tr>
-          <td>${i+1}</td><td>${e.sheetNo}</td><td>${e.date}</td><td>${e.tagNo}</td>
-          <td>${e.area}</td><td>${e.department}</td><td>${e.jobType}</td><td>${e.workLocation}</td>
-          <td>${e.scaffoldingType}</td><td>${e.elevation}</td><td>${sessionData.supervisor}</td><td>${s.eng}</td>
-          <td>${e.l}</td><td>${e.w}</td><td>${e.h}</td><td>${e.nos}</td><td>${e.vol.toFixed(2)}</td>
-        </tr>
-      `).join('');
-
-      const el = document.getElementById('report-container');
-      el.style.display = 'block';
-      const canvas = await html2canvas(el, { scale: 2 });
-      const img = canvas.toDataURL('image/jpeg', 0.9);
-      const link = document.createElement('a');
-      link.download = `Report_${sessionData.date}.jpg`;
-      link.href = img; link.click();
-      el.style.display = 'none';
-    }
-
-    // RESTORED FULL TEXT REPORT
-    function getSummary() {
-      const s = sessionData.stats;
-      return `*SCAFFOLDING REPORT*\nDATE: ${sessionData.date}\nSUPERVISOR: ${sessionData.supervisor}\nMANPOWER: ${s.mp}\nMANHOURS: ${s.mh}\nERECTION: ${s.ere.toFixed(2)} m³\nDISMANTLING: ${s.dis.toFixed(2)} m³\nEQV VOLUME: ${s.eqv.toFixed(2)} m³\nPRODUCTIVITY: ${s.prod}`;
-    }
-
-    function copyWhatsAppText() { navigator.clipboard.writeText(getSummary()); alert("Summary copied!"); }
-    function shareWhatsApp() { window.open(`https://wa.me/?text=${encodeURIComponent(getSummary())}`, '_blank'); }
-  </script>
+        loadApp();
+    </script>
 </body>
 </html>
