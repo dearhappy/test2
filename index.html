@@ -3,268 +3,271 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Basics of Scaffolding</title>
+    <title>Scaffolding Training & Quiz</title>
     <style>
-        body { 
-            font-family: -apple-system, system-ui, sans-serif; 
-            background-color: #f0f2f5; padding: 10px; margin: 0; touch-action: manipulation;
+        /* --- GLOBAL STYLES --- */
+        body { font-family: -apple-system, system-ui, sans-serif; background-color: #f4f6f8; margin: 0; padding: 10px; color: #333; }
+        .header-area { text-align: center; margin: 20px 0; }
+        h1 { color: #2c3e50; font-size: 1.5rem; margin: 0; }
+        .author { color: #7f8c8d; font-size: 0.8rem; margin-top: 5px; }
+
+        /* --- MENU SCREEN --- */
+        #menuScreen { display: grid; gap: 12px; max-width: 500px; margin: 0 auto; padding-bottom: 40px; }
+        .menu-btn {
+            background: white; padding: 18px; border-radius: 10px; text-align: center;
+            font-weight: 600; color: #2c3e50; box-shadow: 0 3px 5px rgba(0,0,0,0.05);
+            cursor: pointer; transition: transform 0.1s; border: 1px solid #eee;
         }
+        .menu-btn:active { transform: scale(0.98); background-color: #eef2f7; }
+        .btn-quiz { border-left: 5px solid #e67e22; } /* Orange stripe for quizzes */
+        .btn-train { border-left: 5px solid #3498db; } /* Blue stripe for training */
+
+        /* --- CONTENT SCREENS --- */
+        .screen { display: none; max-width: 800px; margin: 0 auto; }
+        .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        .back-btn { background: #95a5a6; color: white; border: none; padding: 8px 16px; border-radius: 20px; font-weight: bold; cursor: pointer; }
+
+        /* --- GALLERY STYLES (For Training) --- */
+        .gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .card { background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; }
+        .card img { width: 100%; height: 100px; object-fit: cover; background: #eee; }
+        .card-title { padding: 8px; font-size: 0.8rem; font-weight: bold; text-align: center; }
+
+        /* --- QUIZ STYLES (For Quizzes) --- */
+        .quiz-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .q-number { font-size: 0.8rem; color: #888; font-weight: bold; text-transform: uppercase; margin-bottom: 10px; }
+        .q-text { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; line-height: 1.4; }
         
-        .header-area { text-align: center; margin: 15px 0; }
-        h1 { color: #2c3e50; font-size: 1.6rem; margin: 0; }
-        .author { color: #7f8c8d; font-size: 0.85rem; margin-top: 4px; }
-
-        .controls-container { max-width: 600px; margin: 0 auto 20px; padding: 0 10px; }
-        #searchInput {
-            width: 100%; padding: 12px; border-radius: 25px; border: 1px solid #ccc;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05); font-size: 1rem; outline: none; box-sizing: border-box;
-            margin-bottom: 15px;
+        .options-grid { display: grid; gap: 10px; }
+        .opt-btn {
+            padding: 12px 15px; border: 2px solid #e0e0e0; background: white;
+            border-radius: 8px; text-align: left; cursor: pointer; font-size: 0.95rem;
+            transition: 0.2s;
         }
-
-        .category-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 5px; scrollbar-width: none; }
-        .category-scroll::-webkit-scrollbar { display: none; }
-        .cat-tab {
-            white-space: nowrap; padding: 8px 16px; background: #fff;
-            border: 1px solid #ddd; border-radius: 20px; font-size: 0.85rem;
-            cursor: pointer; transition: 0.2s;
-        }
-        .cat-tab.active { background: #2c3e50; color: white; border-color: #2c3e50; }
-
-        .gallery {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-            gap: 10px; max-width: 1200px; margin: 0 auto; padding-bottom: 30px;
-        }
-        .card {
-            background: white; border-radius: 8px; overflow: hidden;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; position: relative;
-        }
-        .thumb-container {
-            width: 100%; height: 100px; background: #e9ecef;
-            display: flex; align-items: center; justify-content: center; overflow: hidden;
-        }
-        .thumb-container img { width: 100%; height: 100%; object-fit: cover; }
-        .video-indicator {
-            position: absolute; top: 35px; left: 40px; background: rgba(0,0,0,0.7);
-            color: white; border-radius: 50%; padding: 10px; font-size: 12px; z-index: 2;
-        }
-        .card-title { padding: 5px; font-size: 0.75rem; font-weight: bold; text-align: center; }
-
-        /* --- MODAL --- */
-        .modal-overlay {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(0,0,0,0.9); z-index: 1000; justify-content: center; align-items: center;
-        }
-        .modal-content {
-            background: white; width: 95%; max-width: 600px; border-radius: 12px;
-            max-height: 90vh; display: flex; flex-direction: column; position: relative;
-            overflow: hidden;
-        }
-
-        /* Swipe/Nav Animation */
-        .slide-effect { animation: slideUp 0.3s ease-out; }
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .modal-body-scroll { padding: 15px; overflow-y: auto; flex-grow: 1; }
+        .opt-btn:hover { background-color: #f9f9f9; }
         
-        .nav-btn {
-            position: absolute; top: 50%; transform: translateY(-50%);
-            background: rgba(255,255,255,0.9); border: none; width: 35px; height: 35px;
-            border-radius: 50%; font-size: 18px; cursor: pointer; z-index: 10;
-            display: flex; align-items: center; justify-content: center;
-        }
-        @media (max-width: 600px) { .nav-btn { display: none; } } /* Hide buttons on mobile to use swipe */
+        /* Feedback Colors */
+        .correct { background-color: #d4edda !important; border-color: #28a745 !important; color: #155724; }
+        .wrong { background-color: #f8d7da !important; border-color: #dc3545 !important; color: #721c24; }
         
-        .nav-prev { left: 8px; }
-        .nav-next { right: 8px; }
-
-        .item-counter {
-            position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5);
-            color: white; padding: 2px 10px; border-radius: 12px; font-size: 0.75rem; z-index: 11;
-        }
-
-        .media-container { width: 100%; margin-bottom: 15px; background: #000; border-radius: 8px; overflow: hidden; }
-        .media-container img { width: 100%; height: auto; display: block; margin: 0 auto; }
-        .media-container video, .media-container iframe { width: 100%; aspect-ratio: 16 / 9; border: none; }
-
-        .close-btn-top { position: absolute; top: 10px; right: 10px; color: #333; font-size: 28px; cursor: pointer; z-index: 11; background: rgba(255,255,255,0.8); border-radius: 50%; width: 32px; height: 32px; text-align: center; line-height: 30px; }
-        .btn-close-bottom { display: block; width: 100%; padding: 12px; margin-top: 20px; background-color: #e74c3c; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-
-        .modal-title { font-size: 1.2rem; margin: 15px 0 5px 0; }
-        .label { font-weight: bold; font-size: 0.8rem; color: #666; }
-        .spec-text { white-space: pre-wrap; font-size: 0.9rem; color: #333; margin-top: 5px; }
-        .status-badge { font-size: 0.7rem; padding: 3px 8px; border-radius: 10px; color: white; font-weight: bold; background: #6c757d; }
+        /* --- MODAL (For Training Details) --- */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 2000; justify-content: center; align-items: center; }
+        .modal-content { background: white; width: 90%; max-width: 500px; max-height: 90vh; border-radius: 12px; overflow-y: auto; padding: 20px; position: relative; }
+        .close-icon { position: absolute; top: 10px; right: 15px; font-size: 24px; cursor: pointer; color: #555; }
+        .m-img { width: 100%; border-radius: 8px; margin-bottom: 15px; }
     </style>
 </head>
 <body>
 
     <div class="header-area">
-        <h1>Basics of Scaffolding</h1>
+        <h1>Scaffolding Hub</h1>
         <div class="author">by Gurwinder Singh</div>
     </div>
 
-    <div class="controls-container">
-        <input type="text" id="searchInput" placeholder="Search name or ID..." onkeyup="handleFilters()">
-        <div id="categoryTabs" class="category-scroll"></div>
+    <div id="menuScreen">
+        <div style="text-align:center; padding:20px;">Loading Data...</div>
     </div>
 
-    <div id="gallery" class="gallery"></div>
+    <div id="galleryScreen" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">← Back</button>
+            <h3 id="galleryTitle" style="margin:0;">Training</h3>
+        </div>
+        <input type="text" id="searchGallery" placeholder="Search..." onkeyup="filterGallery()" style="width:100%; padding:10px; margin-bottom:15px; border-radius:20px; border:1px solid #ccc;">
+        <div id="galleryGrid" class="gallery-grid"></div>
+    </div>
 
-    <div id="modal" class="modal-overlay" onclick="closeModal(event)">
-        <div class="modal-content" id="swipeArea">
-            <div class="item-counter" id="m-counter"></div>
-            <span class="close-btn-top" onclick="doClose()">&times;</span>
-            
-            <button class="nav-btn nav-prev" onclick="navItem(-1)">❮</button>
-            <button class="nav-btn nav-next" onclick="navItem(1)">❯</button>
+    <div id="quizScreen" class="screen">
+        <div class="top-bar">
+            <button class="back-btn" onclick="showMenu()">← Exit Quiz</button>
+            <h3 id="quizTitle" style="margin:0;">Quiz</h3>
+        </div>
+        <div id="quizContainer"></div>
+    </div>
 
-            <div class="modal-body-scroll" id="modalBody">
-                <div id="media-viewer" class="media-container"></div>
-                <h2 id="m-title" class="modal-title"></h2>
-                <span id="m-status" class="status-badge"></span>
-                <p><span class="label">ID Reference:</span> <span id="m-id"></span></p>
-                <hr>
-                <span class="label">Specifications:</span>
-                <div id="m-specs" class="spec-text"></div>
-                <button class="btn-close-bottom" onclick="doClose()">Close Details</button>
-            </div>
+    <div id="modal" class="modal-overlay" onclick="if(event.target.id==='modal')this.style.display='none'">
+        <div class="modal-content">
+            <span class="close-icon" onclick="document.getElementById('modal').style.display='none'">&times;</span>
+            <div id="modalBody"></div>
         </div>
     </div>
 
     <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxE_L-8c2RjUsE8DHSEBItLvzlQQ6nE1uxquecQAAgD0uPvWbZbeKieIzkV8Yg3nuEO/exec'; 
-        let allItems = [];
-        let filteredItems = [];
-        let currentIndex = -1;
-        let activeCategory = 'All';
+        // *** PASTE YOUR DEPLOYED WEB APP URL HERE ***
+        const API_URL = 'https://script.google.com/macros/s/AKfycbzeljdxGG8RBZ9L8hucmh9AEhw6ZwdtFcUYaj9umEoI_-m583bSwoOLkSmAN-3rRORomA/exec';
+        
+        // Define Menu Structure matches Google Sheet Tab Names
+        const MENU_ITEMS = [
+            { name: 'EQUIPMENTS TRAINING', type: 'train' },
+            { name: 'CUPLOK SCAFFOLDING TRAINING', type: 'train' },
+            { name: 'TUBE AND FITTINGS TRAINING', type: 'train' },
+            { name: 'SCAFFOLDER TRAINING', type: 'train' },
+            { name: 'SCAFFOLDING FOREMAN TRAINING', type: 'train' },
+            { name: 'SCAFFOLDING SUPERVISOR TRAINING', type: 'train' },
+            { name: 'QUIZ FOR SCAFFOLDER', type: 'quiz' },
+            { name: 'QUIZ FOR FOREMAN', type: 'quiz' },
+            { name: 'QUIZ FOR SUPERVISOR', type: 'quiz' }
+        ];
 
-        // SWIPE LOGIC VARIABLES
-        let touchstartX = 0;
-        let touchendX = 0;
+        let fullData = {};
+        let currentData = [];
 
-        async function loadApp() {
+        // INITIALIZE
+        async function init() {
             try {
                 const res = await fetch(API_URL);
-                allItems = await res.json();
-                filteredItems = allItems;
-                createCategoryTabs();
-                render(filteredItems);
-                setupSwipe();
-            } catch(e) { console.error("Load failed", e); }
+                fullData = await res.json();
+                renderMenu();
+            } catch (err) {
+                document.getElementById('menuScreen').innerHTML = '<div style="color:red; text-align:center">Error loading data. Check Web App URL.</div>';
+                console.error(err);
+            }
         }
 
-        function createCategoryTabs() {
-            const tabsContainer = document.getElementById('categoryTabs');
-            const categories = ['All', ...new Set(allItems.map(item => item.Category).filter(Boolean))];
-            tabsContainer.innerHTML = '';
-            categories.forEach(cat => {
-                const tab = document.createElement('div');
-                tab.className = `cat-tab ${cat === activeCategory ? 'active' : ''}`;
-                tab.innerText = cat;
-                tab.onclick = () => {
-                    activeCategory = cat;
-                    document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    handleFilters();
-                };
-                tabsContainer.appendChild(tab);
+        function renderMenu() {
+            const container = document.getElementById('menuScreen');
+            container.innerHTML = '';
+            
+            MENU_ITEMS.forEach(item => {
+                const btn = document.createElement('div');
+                // Add color stripe based on type
+                btn.className = `menu-btn ${item.type === 'quiz' ? 'btn-quiz' : 'btn-train'}`;
+                btn.innerText = item.name;
+                btn.onclick = () => openSection(item.name, item.type);
+                container.appendChild(btn);
             });
         }
 
-        function handleFilters() {
-            const query = document.getElementById('searchInput').value.toLowerCase();
-            filteredItems = allItems.filter(item => {
-                const matchesSearch = (item.Title?.toLowerCase().includes(query)) || (item.ID?.toString().toLowerCase().includes(query));
-                const matchesCategory = (activeCategory === 'All' || item.Category === activeCategory);
-                return matchesSearch && matchesCategory;
-            });
-            render(filteredItems);
+        function showMenu() {
+            document.querySelectorAll('.screen').forEach(el => el.style.display = 'none');
+            document.getElementById('menuScreen').style.display = 'grid';
         }
 
-        function render(items) {
-            const container = document.getElementById('gallery');
-            container.innerHTML = ''; 
-            items.forEach((item, index) => {
-                const url = item['Image URL'] || '';
-                const isVid = isVideo(url);
+        function openSection(name, type) {
+            currentData = fullData[name] || []; // Get data for specific tab
+            
+            document.getElementById('menuScreen').style.display = 'none';
+            
+            if (type === 'train') {
+                document.getElementById('galleryScreen').style.display = 'block';
+                document.getElementById('galleryTitle').innerText = name;
+                renderGallery(currentData);
+            } else {
+                document.getElementById('quizScreen').style.display = 'block';
+                document.getElementById('quizTitle').innerText = name;
+                renderQuiz(currentData);
+            }
+        }
+
+        // --- TRAINING GALLERY LOGIC ---
+        function renderGallery(items) {
+            const grid = document.getElementById('galleryGrid');
+            grid.innerHTML = '';
+            
+            if(items.length === 0) { grid.innerHTML = '<p>No items found.</p>'; return; }
+
+            items.forEach(item => {
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.onclick = () => openModal(index);
+                card.onclick = () => showModal(item);
+                
+                const imgUrl = item['Image URL'] || 'https://via.placeholder.com/150';
                 card.innerHTML = `
-                    <div class="thumb-container">
-                        ${isVid ? '<div class="video-indicator">▶</div>' : ''}
-                        <img src="${isVid ? 'https://via.placeholder.com/150/000/fff?text=VIDEO' : url}">
-                    </div>
-                    <div class="card-title">${item.Title}</div>
+                    <img src="${imgUrl}" onerror="this.src='https://via.placeholder.com/150?text=No+Img'">
+                    <div class="card-title">${item.Title || 'No Title'}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function filterGallery() {
+            const query = document.getElementById('searchGallery').value.toLowerCase();
+            const filtered = currentData.filter(item => 
+                (item.Title && item.Title.toLowerCase().includes(query))
+            );
+            renderGallery(filtered);
+        }
+
+        function showModal(item) {
+            const body = document.getElementById('modalBody');
+            const isVid = (item['Image URL'] || '').includes('youtu');
+            
+            let mediaHtml = '';
+            if (isVid) {
+                // Simplified video check for brevity
+                mediaHtml = `<iframe style="width:100%; height:250px; border:none" src="${item['Image URL']}"></iframe>`;
+            } else {
+                mediaHtml = `<img class="m-img" src="${item['Image URL']}">`;
+            }
+
+            body.innerHTML = `
+                ${mediaHtml}
+                <h2>${item.Title}</h2>
+                <span style="background:#6c757d; color:white; padding:4px 8px; border-radius:4px; font-size:0.8rem">${item.Status || ''}</span>
+                <p><strong>ID:</strong> ${item.ID}</p>
+                <hr>
+                <p style="white-space: pre-wrap;">${item.Specs}</p>
+            `;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        // --- QUIZ LOGIC ---
+        function renderQuiz(questions) {
+            const container = document.getElementById('quizContainer');
+            container.innerHTML = '';
+
+            if(questions.length === 0) { container.innerHTML = '<p>No questions in this quiz yet.</p>'; return; }
+
+            questions.forEach((q, index) => {
+                const card = document.createElement('div');
+                card.className = 'quiz-card';
+                
+                const serial = q['Serial No.'] || (index + 1);
+                
+                // Create Option Buttons
+                let optionsHtml = '';
+                const options = [q['Option 1'], q['Option 2'], q['Option 3'], q['Option 4']].filter(o => o); // Remove empty
+                
+                options.forEach(opt => {
+                    // Escape quotes for safety
+                    const safeOpt = opt.replace(/"/g, '&quot;');
+                    const safeAns = (q['Correct Answer'] || '').replace(/"/g, '&quot;');
+                    
+                    optionsHtml += `<button class="opt-btn" onclick="checkAnswer(this, '${safeOpt}', '${safeAns}')">${opt}</button>`;
+                });
+
+                card.innerHTML = `
+                    <div class="q-number">Question ${serial}</div>
+                    <div class="q-text">${q.Question}</div>
+                    <div class="options-grid">${optionsHtml}</div>
                 `;
                 container.appendChild(card);
             });
         }
 
-        function isVideo(url) {
-            if(!url) return false;
-            return url.includes('youtube.com') || url.includes('youtu.be') || url.match(/\.(mp4|webm|ogg)$/i);
-        }
+        function checkAnswer(btn, selected, correct) {
+            // Disable all buttons in this card
+            const parent = btn.parentElement;
+            const allBtns = parent.querySelectorAll('.opt-btn');
+            allBtns.forEach(b => b.disabled = true);
 
-        function openModal(index) {
-            currentIndex = index;
-            const item = filteredItems[currentIndex];
-            const viewer = document.getElementById('media-viewer');
-            const url = item['Image URL'] || '';
-
-            const body = document.getElementById('modalBody');
-            body.classList.remove('slide-effect');
-            void body.offsetWidth;
-            body.classList.add('slide-effect');
-
-            if (url.includes('youtube.com') || url.includes('youtu.be')) {
-                let vidId = url.split('v=')[1] || url.split('/').pop();
-                viewer.innerHTML = `<iframe id="vidPlayer" src="https://www.youtube.com/embed/${vidId}?autoplay=1" allow="autoplay; fullscreen" allowfullscreen></iframe>`;
-            } else if (url.match(/\.(mp4|webm|ogg)$/i)) {
-                viewer.innerHTML = `<video id="vidPlayer" controls autoplay><source src="${url}" type="video/mp4"></video>`;
+            // Check correctness
+            // We trim() to avoid "A " vs "A" errors
+            if (selected.trim().toLowerCase() === correct.trim().toLowerCase()) {
+                btn.classList.add('correct');
             } else {
-                viewer.innerHTML = `<img src="${url}" alt="Equipment">`;
+                btn.classList.add('wrong');
+                // Highlight the correct one automatically
+                allBtns.forEach(b => {
+                    if (b.innerText.trim().toLowerCase() === correct.trim().toLowerCase()) {
+                        b.classList.add('correct');
+                    }
+                });
             }
-
-            document.getElementById('m-counter').innerText = `${currentIndex + 1} of ${filteredItems.length}`;
-            document.getElementById('m-title').innerText = item.Title || '';
-            document.getElementById('m-id').innerText = item.ID || '';
-            document.getElementById('m-status').innerText = item.Status || '';
-            document.getElementById('m-specs').innerText = item.Specs || '';
-            document.getElementById('modal').style.display = 'flex';
-            body.scrollTop = 0;
         }
 
-        function navItem(step) {
-            let newIndex = currentIndex + step;
-            if (newIndex >= 0 && newIndex < filteredItems.length) openModal(newIndex);
-        }
-
-        // SWIPE FUNCTIONALITY
-        function setupSwipe() {
-            const swipeArea = document.getElementById('swipeArea');
-            swipeArea.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, false);
-            swipeArea.addEventListener('touchend', e => { 
-                touchendX = e.changedTouches[0].screenX;
-                handleGesture();
-            }, false);
-        }
-
-        function handleGesture() {
-            if (touchendX < touchstartX - 50) navItem(1); // Swipe Left -> Next
-            if (touchendX > touchstartX + 50) navItem(-1); // Swipe Right -> Prev
-        }
-
-        function doClose() {
-            document.getElementById('media-viewer').innerHTML = ''; 
-            document.getElementById('modal').style.display = 'none';
-        }
-
-        function closeModal(e) { if(e.target.id === 'modal') doClose(); }
-
-        loadApp();
+        // Start
+        init();
     </script>
 </body>
 </html>
